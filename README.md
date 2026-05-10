@@ -43,12 +43,4 @@ Version 4.2 introduces the **"Basic Tweaks Option"** directly into your Desktop 
 ## ⚠️ Disclaimer
 *This tool modifies system-level settings. While it is designed to be safe and reversible, please create a **System Restore Point** before use. Use at your own risk.*
 
----
-*Created for performance enthusiasts.*
-<img width="755" height="598" alt="Screenshot_4" src="https://github.com/user-attachments/assets/9d661464-47aa-4608-93a7-3ccdc9435203" />
-
-
----
-*The Process when discord and steam in use.*
-<img width="750" height="622" alt="Screenshot_5" src="https://github.com/user-attachments/assets/10ac9cd4-5b94-4007-a6a4-72b2004de544" />
 
