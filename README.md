@@ -1,4 +1,4 @@
-# 🛠️ Basic Tweaker V4.3
+# 🛠️ Basic Tweaker V4.5
 **Optimize Windows 10 & 11 performance without sacrificing stability.**
 
 Basic Tweaker is a lightweight utility designed to streamline your Windows experience. It focuses on disabling non-essential services and removing system bloatware that consumes background resources, ensuring a faster, more responsive PC.
