@@ -17,7 +17,6 @@ Experience a significant drop in resource usage. After applying the tweaks, the 
 
 * **Service Optimization:** Automatically configures dozens of unwanted services (Telephony, Print Spooler, Remote Registry, etc.) to Manual or Disabled.
 * **Bloatware Removal:** Quickly uninstalls pre-installed UWP apps (Windows Maps, Your Phone, Weather, etc.) to free up space.
-* **Ultimate Performance:** Unlocks and activates the hidden "Ultimate Performance" power plan for maximum hardware power.
 * **Gaming Tweaks:** Adjusts Registry keys like `SystemResponsiveness` to reduce latency and micro-stuttering.
 * **One-Click Cleaning:** Deep cleans Temporary files, Prefetch, and Cache with a single button.
 
