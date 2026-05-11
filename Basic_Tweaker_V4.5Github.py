@@ -29,11 +29,9 @@ class WindowsOptimizer:
         self.root.configure(bg='#0a0e1a')
         ctk.set_appearance_mode("dark")
         ctk.set_default_color_theme("dark-blue")
-# داخل دالة __init__ للواجهة الرسومية
         style = ttk.Style()
         style.theme_use('clam')
 
-# خلي كل شي شفاف بنفس لون الخلفية
         style.configure('TNotebook', background='#05091a', borderwidth=0, highlightthickness=0)
         style.configure('TNotebook.Tab', background='#05091a', foreground='#00aaff', padding=[10, 5])
         style.configure('TFrame', background='#05091a')
@@ -42,7 +40,6 @@ class WindowsOptimizer:
             background=[('selected', '#05091a'), ('active', '#05091a')],
             foreground=[('selected', 'white'), ('active', '#00aaff')]
         )
-# هذا مهم جداً — يحذف الحد الرمادي حول التابات
         style.layout('TNotebook', [('Notebook.client', {'sticky': 'nswe'})])
         if not self.is_admin():
             ctk.CTkToplevel(self.root)  # force focus
@@ -58,12 +55,10 @@ class WindowsOptimizer:
             self.bg_photo = ImageTk.PhotoImage(resized)
             self.canvas.itemconfig(self.bg_on_canvas, image=self.bg_photo)
 
-# إضافة أيقونة للنافذة وشريط المهام
-        # Check for Admin
+
 
 
     def get_installed_packages(self):
-        """فحص النظام والحصول على قائمة بأسماء الحزم المثبتة حالياً"""
         try:
             cmd = "Get-AppxPackage | Select-Object -ExpandProperty Name"
             result = subprocess.run(["powershell", "-Command", cmd], capture_output=True, text=True)
@@ -83,11 +78,9 @@ class WindowsOptimizer:
             key = winreg.OpenKey(hkey, path, 0, winreg.KEY_READ)
             value, _ = winreg.QueryValueEx(key, name)
             winreg.CloseKey(key)
-            # مقارنة دقيقة بعد حذف المسافات وتوحيد حالة الأحرف
             return str(value).strip().lower() == str(expected_value).strip().lower()
         except FileNotFoundError:
-            # إذا لم يجد المفتاح، نعتبره 0 (الوضع الافتراضي) 
-            # فإذا كان البرنامج يبحث عن '0' سيظهر True، وإذا كان يبحث عن '1' سيظهر False
+
             return str(expected_value) == "0"
         except Exception:
             return False
@@ -242,22 +235,18 @@ class WindowsOptimizer:
         # Re-build the content
         self.build_system_info_tab()
     def render_About_List(self):
-            # 1. تنظيف التبويب من أي عناصر قديمة
             for widget in self.tab_About.winfo_children():
                 widget.destroy()
 
-            # 2. حاوية رئيسية لتوسيط الكلام وإعطائه مظهر احترافي
             main_frame = ctk.CTkFrame(self.tab_About, fg_color="transparent")
             main_frame.pack(expand=True, fill="both", padx=40, pady=40)
 
-            # 3. أيقونة تنبيه كبيرة (اختياري)
             ctk.CTkLabel(
                 main_frame,
                 text="💡",
                 font=ctk.CTkFont(size=50)
             ).pack(pady=(0, 10))
 
-            # 4. العنوان الرئيسي (Note)
             ctk.CTkLabel(
                 main_frame,
                 text="IMPORTANT NOTE",
@@ -265,20 +254,18 @@ class WindowsOptimizer:
                 text_color="#00aaff" # نفس لون تطبيقك الأساسي
             ).pack(pady=10)
 
-            # 5. النص التوضيحي المطلوب (كبير وواضح)
             note_text = "When U Disable Gaming Tweaks The Mouse\nAnd Animation Will Back To default"
             
             self.label_note = ctk.CTkLabel(
                 main_frame,
                 text=note_text,
                 font=ctk.CTkFont(family="Segoe UI", size=18, weight="normal"),
-                text_color="#cdd6f4", # لون نص فاتح ومريح للعين
+                text_color="#cdd6f4", 
                 justify="center",
-                wraplength=500     # يضمن نزول النص لسطر جديد إذا كانت النافذة صغيرة
+                wraplength=500    
             )
             self.label_note.pack(pady=20)
 
-            # 6. إضافة خط جمالي أسفل النص (Separator)
             ctk.CTkFrame(
                 main_frame, 
                 height=2, 
@@ -286,7 +273,6 @@ class WindowsOptimizer:
                 fg_color="#1a2540"
             ).pack(pady=10)
     def set_reg(self, hkey, path, name, value, reg_type):
-        """دالة عامة للكتابة في الريجستري مع إنشاء المسار إذا لم يكن موجوداً"""
         try:
             key = winreg.CreateKeyEx(hkey, path, 0, winreg.KEY_SET_VALUE)
             winreg.SetValueEx(key, name, 0, reg_type, value)
@@ -300,7 +286,6 @@ class WindowsOptimizer:
             return False
 
     def setup_ui(self):
-# إضافة أيقونة للنافذة وشريط المهام
 
         header_frame = ctk.CTkFrame(self.root, fg_color="transparent")
         header_frame.pack(fill="x", padx=20, pady=(14, 0))
@@ -361,7 +346,6 @@ class WindowsOptimizer:
 
         # --- Bloatware Tab ---
         self.bloatware_vars = []
-        # هذه قائمة بـ 30 تطبيق (يمكنك تغيير الأسماء البرمجية كما تشاء)
         self.bloatware_items = [
             ("Cortana", "Microsoft.549981C3F5F10"),
             ("Microsoft News", "Microsoft.BingNews"),
@@ -395,7 +379,6 @@ class WindowsOptimizer:
             ("Xbox Game Speech", "Microsoft.XboxGameSpeechWindow"),
             ("OneNote Windows 10", "Microsoft.Office.OneNote"),
 
-            # --- تطبيقات الشركات والدعاية (OEM & Third-Party Bloatware) ---
             ("Disney+", "DisneyPlus"),
             ("Spotify", "SpotifyAB.SpotifyMusic"),
             ("Netflix", "4DF9E0F8.Netflix"),
@@ -417,7 +400,6 @@ class WindowsOptimizer:
             ("CyberLink PowerDVD", "CyberLinkCorp.PowerDVD"),
             ("Dropbox", "Dropbox.Dropbox"),
 
-            # --- حزم الامتدادات والخدمات (Extensions & Services) ---
             ("Print 3D", "Microsoft.Print3D"),
             ("Family", "Microsoft.MicrosoftFamilyFeatures"),
             ("Dev Home", "Microsoft.Windows.DevHome"),
@@ -488,7 +470,6 @@ class WindowsOptimizer:
         self.render_restore_list()
         self.render_About_List()
         # Apply Button
-        # ابحث عن سطر تعريف الزر في كودك وقم بتعديله هكذا:
         ctk.CTkButton(
             self.root,
             text="⚡  Apply Tweaks",
@@ -513,15 +494,14 @@ class WindowsOptimizer:
             if var.get(): tasks.append(("func", func))
 
         if not tasks:
-            messagebox.showinfo("تنبيه", "يرجى اختيار عنصر واحد على الأقل.")
+            messagebox.showinfo("Alert", "Please Choose One of tasks to do")
             return
 
-        # 2. إنشاء نافذة التحميل (Progress Window)
         progress_win = ctk.CTkToplevel(self.root)
-        progress_win.title("جاري التنفيذ")
+        progress_win.title("Process Applying...")
         progress_win.geometry("400x200")
-        progress_win.attributes("-topmost", True) # لتبقى النافذة في المقدمة
-        progress_win.grab_set() # منع التفاعل مع النافذة الرئيسية حتى ينتهي
+        progress_win.attributes("-topmost", True) 
+        progress_win.grab_set() 
 
         label_status = ctk.CTkLabel(progress_win, text="بدء العمليات...", font=("Segoe UI", 13))
         label_status.pack(pady=20)
@@ -533,53 +513,43 @@ class WindowsOptimizer:
         label_percent = ctk.CTkLabel(progress_win, text="0%")
         label_percent.pack()
 
-        # ثابت لمنع ظهور نافذة CMD السوداء
         CREATE_NO_WINDOW = 0x08000000
 
         total_tasks = len(tasks)
         
-        # 3. البدء في تنفيذ المهام واحدة تلو الأخرى
         for index, (task_type, task_data) in enumerate(tasks):
-            # تحديث النسبة المئوية
             current_step = (index + 1) / total_tasks
             
-            # تحديث النص بناءً على نوع المهمة
             if task_type == "bloatware":
-                label_status.configure(text=f"جاري إزالة: {task_data}")
+                label_status.configure(text=f"Removing: {task_data}")
             else:
-                label_status.configure(text=f"جاري تطبيق: {task_data.__name__}")
+                label_status.configure(text=f"Applying: {task_data.__name__}")
 
-            # تحديث الواجهة الرسومية لتظهر التغييرات فوراً
             progress_bar.set(current_step)
             label_percent.configure(text=f"{int(current_step * 100)}%")
-            progress_win.update() # مهم جداً لتحديث الشكل قبل تنفيذ الأمر التالي
+            progress_win.update() 
 
             # تنفيذ المهمة فعلياً
             try:
                 if task_type == "bloatware":
                     cmd = f"Get-AppxPackage *{task_data}* | Remove-AppxPackage"
-                    # استخدام check=True يضمن أن البرنامج ينتظر انتهاء الأمر قبل الانتقال للسطر التالي
                     subprocess.run(["powershell", "-Command", cmd], 
                                  capture_output=True, 
                                  creationflags=CREATE_NO_WINDOW,
                                  check=False)
                 else:
-                    task_data() # تنفيذ الدالة الخاصة بالتعديلات
+                    task_data()
             except Exception as e:
                 print(f"Error executing {task_data}: {e}")
 
-        # 4. بعد انتهاء الحلقة بالكامل (هنا يأتي الإشعار)
-        progress_win.destroy() # إغلاق نافذة التحميل أولاً
+        progress_win.destroy() 
         
-        # تحديث القوائم في الواجهة الرئيسية
         self.refresh_all_lists() 
         
-        # إظهار رسالة النجاح النهائية
         if not fix_windowed_presentmode:
             messagebox.showinfo("✅ Done", f"Applied {total} tweaks successfully!")
 
     def refresh_all_lists(self):
-        """دالة مساعدة لتحديث القوائم بعد التعديل"""
         self.installed_packages = self.get_installed_packages()
         self.render_bloatware_list()
         self.render_tweaks_list()
@@ -597,7 +567,6 @@ class WindowsOptimizer:
 
 
     def build_system_info_tab(self):
-            # تنظيف التاب تماماً قبل إعادة البناء
             for child in self.tab_system.winfo_children():
                 child.destroy()
 
@@ -612,9 +581,7 @@ class WindowsOptimizer:
                 ctk.CTkLabel(row, text=str(value), font=ctk.CTkFont("Segoe UI", 12, weight="bold"),
                             text_color=color, anchor="w").pack(side="left", padx=4)
 
-            # 1. نظام التشغيل
             try:
-                # هذا الأمر يجلب الرقم الأساسي + رقم التحديث الفرعي (UBR)
                 cmd = 'powershell "(Get-ItemProperty \'HKLM:\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\').CurrentBuild + \'.\' + (Get-ItemProperty \'HKLM:\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\').UBR"'
                 res = subprocess.run(cmd, capture_output=True, text=True, shell=True)
                 build_full = res.stdout.strip()
@@ -624,7 +591,6 @@ class WindowsOptimizer:
                 info_row("Windows Build", "N/A")
 
 
-            # 2. المعالج (CPU) - طريقة الريجستري (الأسرع والأدق)
             cpu_name = "Unknown CPU"
             try:
                 import winreg
@@ -636,19 +602,15 @@ class WindowsOptimizer:
             info_row("CPU", cpu_name)
             info_row("CPU Cores", f"{psutil.cpu_count(logical=False)} Physical / {psutil.cpu_count()} Logical")
 
-            # 3. كرت الشاشة (GPU) - استخدام PowerShell (الأكثر ضماناً)
             gpu_name = "Detecting..."
             try:
-                # نستخدم PowerShell لأنه يتخطى مشاكل wmic في التحديثات الجديدة
                 ps_cmd = 'powershell "Get-CimInstance Win32_VideoController | Select-Object -ExpandProperty Name"'
                 gpu_res = subprocess.run(ps_cmd, capture_output=True, text=True, shell=True)
                 gpu_out = gpu_res.stdout.strip()
                 
                 if gpu_out:
-                    # إذا وجد أكثر من كرت (مثل Intel و NVIDIA)، سيتم عرضهم جميعاً
                     gpu_name = gpu_out.replace("\n", " / ")
                 else:
-                    # محاولة بديلة عبر wmic بتنسيق مختلف
                     gpu_res = subprocess.run("wmic path win32_videocontroller get caption", capture_output=True, text=True, shell=True)
                     gpu_lines = [l.strip() for l in gpu_res.stdout.splitlines() if l.strip() and "Caption" not in l]
                     gpu_name = gpu_lines[0] if gpu_lines else "GPU Not Found"
@@ -657,7 +619,6 @@ class WindowsOptimizer:
                 
             info_row("GPU", gpu_name)
 
-            # 4. الذاكرة العشوائية (RAM)
             ram = psutil.virtual_memory()
             ram_total = f"{ram.total / (1024**3):.1f} GB"
             ram_used  = f"{ram.used  / (1024**3):.1f} GB"
@@ -666,22 +627,18 @@ class WindowsOptimizer:
             info_row("RAM Total", ram_total)
             info_row("RAM Used", f"{ram_used} ({ram_pct}%)", ram_color)
 
-            # 5. القرص الصلب (Disk C)
             try:
                 disk = psutil.disk_usage("C:\\")
                 info_row("Disk C: Free", f"{disk.free/(1024**3):.1f} GB / {disk.total/(1024**3):.1f} GB")
             except: pass
 
-            # 6. وقت التشغيل (Uptime)
             import datetime
             uptime = datetime.datetime.now() - datetime.datetime.fromtimestamp(psutil.boot_time())
             info_row("Uptime", f"{int(uptime.total_seconds() // 3600)}h {int((uptime.total_seconds() % 3600) // 60)}m")
 
-            # 7. حالة المسؤول
             is_admin = self.is_admin()
             info_row("Permissions", "✅ Admin" if is_admin else "❌ Not Admin", "#00ff88" if is_admin else "#ff5555")
 
-            # زر التحديث
             ctk.CTkButton(
                 scroll, text="🔄  Refresh Info", height=36,
                 fg_color="#1a2540", hover_color="#223060",
@@ -700,7 +657,6 @@ class WindowsOptimizer:
 
 
     def remove_xbox_apps(self):
-        """إزالة تطبيقات Xbox بالكامل"""
         apps = [
             "Microsoft.XboxApp",
             "Microsoft.XboxGamingOverlay",
@@ -727,7 +683,6 @@ class WindowsOptimizer:
             msg += f"\n\n❌ Failed ({len(failed)}):\n" + "\n".join(f"  • {f}" for f in failed)
         messagebox.showinfo("Remove Xbox Apps", msg)
     def restore_xbox_apps(self):
-        """إعادة تثبيت تطبيقات Xbox"""
         apps = [
             "Microsoft.XboxApp",
             "Microsoft.XboxGamingOverlay",
@@ -761,7 +716,6 @@ class WindowsOptimizer:
             base_path = r"SOFTWARE\Microsoft\Windows NT\CurrentVersion\Multimedia\SystemProfile"
 
             # ===== SystemProfile =====
-            # NetworkThrottlingIndex هنا فقط — حذفنا النسخة المكررة أسفل
             key = winreg.CreateKeyEx(winreg.HKEY_LOCAL_MACHINE, base_path, 0, winreg.KEY_SET_VALUE)
             winreg.SetValueEx(key, "SchedulerTimerResolution", 0, winreg.REG_DWORD, 0x00002710)  # 10000
             winreg.SetValueEx(key, "NoLazyMode",               0, winreg.REG_DWORD, 0x00000000)
@@ -874,10 +828,8 @@ class WindowsOptimizer:
                     p_cmd_key = winreg.CreateKeyEx(winreg.HKEY_LOCAL_MACHINE, plan_key_path + r"\command", 0, winreg.KEY_SET_VALUE)
                     
                     if name == "Ultimate Performance":
-                        # تعديل: نستخدم cmd /c ونقوم بإظهار الخطة أولاً ثم تفعيلها
                         cmd = f'cmd /c "powercfg -duplicatescheme {guid} && powercfg /setactive {guid}"'
                     else:
-                        # الخطط العادية لا تحتاج تكرار، فقط تفعيل
                         cmd = f'powercfg /setactive {guid}'
                         
                     winreg.SetValueEx(p_cmd_key, "", 0, winreg.REG_SZ, cmd)
@@ -1043,7 +995,7 @@ class WindowsOptimizer:
                 winreg.SetValueEx(temp_cmd_key, "", 0, winreg.REG_SZ, ps_script)
                 winreg.CloseKey(temp_cmd_key)
 
-                # ── 4. LowLatency Power Plan (يظهر فقط إذا مثبتة) ──────────
+                # ── 4. LowLatency Power Plan  ──────────
                 pl_result = subprocess.run(["powercfg", "/list"], capture_output=True, text=True)
                 plan_guid = None
                 for line in pl_result.stdout.splitlines():
@@ -1064,7 +1016,6 @@ class WindowsOptimizer:
                     winreg.SetValueEx(ll_cmd, "", 0, winreg.REG_SZ, f'powercfg /setactive {plan_guid}')
                     winreg.CloseKey(ll_cmd)
 
-                    # ── هنا messagebox الحالي ──
                 messagebox.showinfo("✅ Success", "Context menu updated!...")
             except Exception as e:
                 messagebox.showerror("Error", f"Failed to update menu: {e}")
@@ -1073,7 +1024,6 @@ class WindowsOptimizer:
         try:
             pow_file = resource_path("LLG-CΞRT1F1ΞD.pow")
             
-            # استيراد الـ Power Plan
             result = subprocess.run(
                 ["powercfg", "-import", pow_file],
                 capture_output=True, text=True
@@ -1083,20 +1033,17 @@ class WindowsOptimizer:
                 messagebox.showerror("Error", f"Failed to import: {result.stderr}")
                 return
             
-            # استخراج الـ GUID من الناتج
             match = re.search(r"[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}", 
                             result.stdout, re.IGNORECASE)
             
             if match:
                 guid = match.group(0)
                 
-                # تغيير الاسم لأي اسم تريده
                 subprocess.run(
                     ["powercfg", "/changename", guid, "⚡ LowLatency Gaming Plan"],
                     capture_output=True
                 )
                 
-                # تفعيله مباشرة
                 subprocess.run(
                     ["powercfg", "/setactive", guid],
                     capture_output=True
@@ -1115,7 +1062,6 @@ class WindowsOptimizer:
 
     def remove_custom_power_plan(self):
         try:
-            # ابحث عن الخطة بالاسم واحذفها
             result = subprocess.run(
                 ["powercfg", "/list"],
                 capture_output=True, text=True
@@ -1129,10 +1075,8 @@ class WindowsOptimizer:
                     )
                     if match:
                         guid = match.group(0)
-                        # رجّع Balanced أولاً
                         subprocess.run(["powercfg", "/setactive", 
                             "381b4222-f694-41f0-9685-ff5bb260df2e"], capture_output=True)
-                        # احذف الخطة
                         subprocess.run(["powercfg", "-delete", guid], capture_output=True)
                         messagebox.showinfo("✅ Done", "Custom power plan removed.")
                         return
@@ -1214,7 +1158,6 @@ class WindowsOptimizer:
 
         win.bind("<Return>", lambda e: win.destroy())
     def disable_services(self):
-        """تعطيل الخدمات غير الضرورية عبر الريجستري"""
         services = [
             ("BTAGService",         "Bluetooth Audio Gateway"),
             ("bthserv",             "Bluetooth Support Service"),
@@ -1314,7 +1257,6 @@ class WindowsOptimizer:
             if not confirm:
                 return
 
-        # ── خدمات ثابتة الاسم ──
         for service, desc in services:
             try:
                 key = winreg.CreateKeyEx(
@@ -1330,7 +1272,6 @@ class WindowsOptimizer:
                 failed.append(desc)
                 print(f"[ERROR] {desc}: {e}")
 
-        # ── خدمات ديناميكية الاسم ──
         dynamic_services = [
             "MessagingService",
             "OneSyncSvc",
@@ -1396,7 +1337,6 @@ class WindowsOptimizer:
             if not confirm:
                 return
 
-        # ── خدمات ثابتة الاسم ──
         for service, desc in services:
             try:
                 key = winreg.CreateKeyEx(
@@ -1412,7 +1352,6 @@ class WindowsOptimizer:
                 failed.append(desc)
                 print(f"[ERROR] {desc}: {e}")
 
-        # ── خدمات ديناميكية الاسم ──
         dynamic_services = [
             "MessagingService",
             "OneSyncSvc",
@@ -1486,7 +1425,6 @@ class WindowsOptimizer:
 
     def disable_Wifi(self):
         services = [
-            # (اسم الخدمة,                  الوصف)
             ("WFDSConMgrSvc", "Wi-Fi Direct Services Connection Manager"),
             ("WlanSvc",       "WLAN AutoConfig"),
             ("WwanSvc",       "WWAN AutoConfig"),
@@ -1516,7 +1454,6 @@ class WindowsOptimizer:
 
     def Enable_Wifi(self):
         services = [
-            # (اسم الخدمة,                  الوصف)
         ("WFDSConMgrSvc", 3, "Wi-Fi Direct Services Connection Manager"),
         ("WlanSvc",       2, "WLAN AutoConfig"),
         ("WwanSvc",       3, "WWAN AutoConfig"),
@@ -1542,7 +1479,6 @@ class WindowsOptimizer:
 
         self.show_result_window("Enable Wifi", success, failed)
     def disable_Xbox_Services(self):
-        """تعطيل الخدمات غير الضرورية عبر الريجستري"""
         services = [
             # ---- Xbox & Gaming (if not a gamer) ----
             ("XblAuthManager",      "Xbox Live Auth Manager"),
@@ -1601,7 +1537,6 @@ class WindowsOptimizer:
 
     def Enable_Bitlocker(self):
         services = [
-            # (اسم الخدمة,                  الوصف)
             ("BDESVC", 3 , "BitLocker Drive Encryption Service"),
         ]
         base = r"SYSTEM\CurrentControlSet\Services"
@@ -1740,7 +1675,6 @@ class WindowsOptimizer:
 
     def restore_Xbox_services(self):
         """استعادة الخدمات لقيمها الافتراضية"""
-        # (اسم الخدمة, القيمة الافتراضية, الوصف)
         # 2=Automatic, 3=Manual, 4=Disabled
         services = [
             ("XblAuthManager",      3, "Xbox Live Auth Manager"),
@@ -1773,12 +1707,10 @@ class WindowsOptimizer:
         
     def permanent_optimizations(self):
         try:
-            # Visual Performance — أولوية الأداء على الشكل
             key = winreg.CreateKey(winreg.HKEY_CURRENT_USER, r"Software\Microsoft\Windows\CurrentVersion\Explorer\VisualEffects")
             winreg.SetValueEx(key, "VisualFXSetting", 0, winreg.REG_DWORD, 2)  # 2 = Adjust for best performance
             winreg.CloseKey(key)
 
-            # تعطيل Mouse Trails وتقليل تأخير الماوس
             key = winreg.CreateKey(winreg.HKEY_CURRENT_USER, r"Control Panel\Mouse")
             winreg.SetValueEx(key, "MouseTrails",   0, winreg.REG_SZ, "0")
             winreg.SetValueEx(key, "MouseSpeed",    0, winreg.REG_SZ, "0")  # إيقاف Pointer Precision
@@ -1802,15 +1734,12 @@ class WindowsOptimizer:
             print(f"Error: {e}")
 
     def enable_classic_context_menu(self):
-        """تفعيل قائمة الزر الأيمن الكلاسيكية (Windows 10 Style)"""
         path = r"Software\Classes\CLSID\{86ca1aa0-34aa-4e8b-a509-50c905bae2a2}\InprocServer32"
         try:
-            # إنشاء المسار وضبط القيمة الافتراضية كقيمة فارغة
             key = winreg.CreateKey(winreg.HKEY_CURRENT_USER, path)
             winreg.SetValueEx(key, "", 0, winreg.REG_SZ, "")
             winreg.CloseKey(key)
             
-            # إعادة تشغيل Explorer لتطبيق التغيير فوراً
             subprocess.run("taskkill /f /im explorer.exe", shell=True, capture_output=True)
             subprocess.run("start explorer.exe", shell=True, capture_output=True)
             
@@ -1820,50 +1749,40 @@ class WindowsOptimizer:
 
     def create_restore_point(self):
         try:
-            # رسالة توضيحية لأن العملية قد تستغرق ثواني
-            print("جاري إنشاء نقطة استعادة النظام، يرجى الانتظار...")
+            print("Create Restore Point....")
             
-            # أمر البور شيل لإنشاء نقطة استعادة
             cmd = "Checkpoint-Computer -Description 'Optimizer_Backup' -RestorePointType 'MODIFY_SETTINGS'"
             
-            # تشغيل الأمر بصلاحيات مسؤول
             result = subprocess.run(["powershell", "-Command", cmd], capture_output=True, text=True)
             
             if result.returncode == 0:
-                messagebox.showinfo("نجاح", "تم إنشاء نقطة استعادة بنجاح باسم: Optimizer_Backup")
+                messagebox.showinfo("Success", "Restore Point Created: Optimizer_Backup")
             else:
-                # في حال كان الويندوز يمنع إنشاء نقاط استعادة متكررة في وقت قصير
-                messagebox.showwarning("تنبيه", "لم يتم إنشاء نقطة استعادة. تأكد من تفعيل System Protection في الويندوز.")
+                messagebox.showwarning("Alert", "U didnt made an Restore Point.")
         except Exception as e:
-            messagebox.showerror("خطأ", f"فشل إنشاء نقطة الاستعادة: {e}")
+            messagebox.showerror("Failed", f"Failed To make Restore Point: {e}")
 
     def remove_microsoft_edge(self):
         try:
-            # 1. إغلاق كافة عمليات إيدج المشغلة حالياً
             subprocess.run("taskkill /F /IM msedge.exe /T", shell=True, capture_output=True)
             
-            # 2. تعطيل تشغيل إيدج عبر الريجستري (DisallowRun)
             key_path = r"Software\Microsoft\Windows\CurrentVersion\Policies\Explorer"
             key = winreg.CreateKey(winreg.HKEY_CURRENT_USER, key_path)
             disallow_key = winreg.CreateKey(key, "DisallowRun")
             winreg.SetValueEx(disallow_key, "1", 0, winreg.REG_SZ, "msedge.exe")
             
-            # 3. منع إيدج من أن يكون الخيار التلقائي للروابط (IFEO)
             ifeo_path = r"SOFTWARE\Microsoft\Windows NT\CurrentVersion\Image File Execution Options\msedge.exe"
             ifeo_key = winreg.CreateKey(winreg.HKEY_LOCAL_MACHINE, ifeo_path)
-            # توجيه تشغيله إلى "تطبيق وهمي" لكي لا يفتح أبداً
             winreg.SetValueEx(ifeo_key, "Debugger", 0, winreg.REG_SZ, "systray.exe")
             
-            # 4. محاولة تغيير اسم المجلد لمنع النظام من العثور عليه
             edge_dir = r"C:\Windows\SystemApps\Microsoft.MicrosoftEdge_8wekyb3d8bbwe"
             if os.path.exists(edge_dir):
-                # ملاحظة: قد تتطلب هذه الخطوة صلاحيات TrustedInstaller في بعض النسخ
                 try: os.rename(edge_dir, edge_dir + "_disabled")
                 except: pass
 
-            messagebox.showinfo("نجاح", "تم تحييد Microsoft Edge بنجاح. لن يعمل المتصفح بعد الآن حتى لو حاول النظام فتحه.")
+            messagebox.showinfo("Success", "Microsoft Edge Debloated.")
         except Exception as e:
-            messagebox.showerror("خطأ", f"فشل تعطيل إيدج: {e}")
+            messagebox.showerror("Failed", f"Failed to Debloat Edge: {e}")
     def disable_location(self):
         self.set_reg(winreg.HKEY_LOCAL_MACHINE, r"SOFTWARE\Microsoft\Windows\CurrentVersion\CapabilityAccessManager\ConsentStore\location", "Value", "Deny", winreg.REG_SZ)
 
@@ -1985,32 +1904,25 @@ class WindowsOptimizer:
         except Exception as e:
             messagebox.showerror("Error", f"Failed: {e}")
     def enable_transparency_reg(self):
-        """إعادة تفعيل شفافية النوافذ"""
         self.set_reg(winreg.HKEY_CURRENT_USER, r"Software\Microsoft\Windows\CurrentVersion\Themes\Personalize", "EnableTransparency", 1, winreg.REG_DWORD)
 
     def restore_windows11_context_menu(self):
-        """العودة لقائمة الزر الأيمن الحديثة (Windows 11 Style)"""
         path = r"Software\Classes\CLSID\{86ca1aa0-34aa-4e8b-a509-50c905bae2a2}"
         try:
-            # حذف المفتاح الذي أنشأناه باستخدام أمر REG DELETE لضمان الحذف الشامل
             subprocess.run(['reg', 'delete', f'HKCU\\{path}', '/f'], capture_output=True)
             
-            # إعادة تشغيل Explorer
             subprocess.run("taskkill /f /im explorer.exe", shell=True, capture_output=True)
             subprocess.run("start explorer.exe", shell=True, capture_output=True)
             
-            messagebox.showinfo("Success", "تمت العودة لشكل ويندوز 11 الأصلي.")
+            messagebox.showinfo("Success", "Windows Context Menu back to Defult.")
         except Exception as e:
             print(f"Error: {e}")
 
     def enable_telemetry_reg(self):
-        """إعادة تفعيل جمع البيانات (Telemetry)"""
         self.set_reg(winreg.HKEY_LOCAL_MACHINE, r"SOFTWARE\Policies\Microsoft\Windows\DataCollection", "AllowTelemetry", 1, winreg.REG_DWORD)
 
     def restore_dll_unloading(self):
-        """إعادة السلوك الافتراضي لويندوز في التعامل مع ملفات DLL واستجابة النظام"""
         try:
-            # 2. إرجاع استجابة المهام (Task Responsiveness) للوضع الافتراضي (غالباً 20ms)
             self.set_reg(winreg.HKEY_LOCAL_MACHINE, r"SOFTWARE\Microsoft\Windows NT\CurrentVersion\Multimedia\SystemProfile", "SystemResponsiveness", 20, winreg.REG_DWORD)
             
             print("System Responsiveness & DLL Unloading restored to default.")
@@ -2018,9 +1930,7 @@ class WindowsOptimizer:
             print(f"Error restoring system responsiveness: {e}")
 
     def restore_edge(self):
-        """إلغاء حظر متصفح Microsoft Edge وإعادته للعمل"""
         try:
-            # نقوم بحذف قيمة Debugger تماماً لإعادة تشغيل الملف الأصلي
             path = r"SOFTWARE\Microsoft\Windows NT\CurrentVersion\Image File Execution Options\msedge.exe"
             key = winreg.OpenKey(winreg.HKEY_LOCAL_MACHINE, path, 0, winreg.KEY_ALL_ACCESS)
             winreg.DeleteValue(key, "Debugger")
@@ -2049,7 +1959,6 @@ class WindowsOptimizer:
             success, failed = [], []
 
             tweaks = [
-                # تعطيل Core Parking — يمنع Windows من إيقاف الـ cores
                 (["powercfg", "-setacvalueindex", "SCHEME_CURRENT",
                 "54533251-82be-4824-96c1-47b60b740d00",
                 "0cc5b647-c1df-4637-891a-dec35c318583", "0"],
@@ -2075,7 +1984,6 @@ class WindowsOptimizer:
                 "12a0ab44-fe28-4fa9-b3bd-4b64f44960a6", "8"],
                 "Performance Decrease Threshold 8%"),
 
-                # تطبيق التغييرات على الخطة الحالية
                 (["powercfg", "-setactive", "SCHEME_CURRENT"],
                 "Apply Changes"),
             ]
@@ -2098,7 +2006,6 @@ class WindowsOptimizer:
             success, failed = [], []
 
             tweaks = [
-                # إعادة Core Parking للافتراضي
     # Restore Core Parking
                 (["powercfg", "-setacvalueindex", "SCHEME_CURRENT",
                 "54533251-82be-4824-96c1-47b60b740d00",
@@ -2140,7 +2047,6 @@ class WindowsOptimizer:
         except Exception as e:
             messagebox.showerror("Error", f"Failed: {e}")
 
-        # 9. إعادة تفعيل شعار الإقلاع (GUI Boot)
 
 
 
