@@ -1,4 +1,4 @@
-#pyinstaller --onefile --noconsole --icon=icon.ico --uac-admin --add-data "LLG-CΞRT1F1ΞD.pow;." --add-data "icon.ico;." --name "Basic Tweaker V4.4" "Basic_Tweaker_V4.4Github.py"
+#pyinstaller --onefile --noconsole --icon=icon.ico --uac-admin --add-data "LLG-CΞRT1F1ΞD.pow;." --add-data "icon.ico;." --name "Basic Tweaker V4.5" "Basic_Tweaker_V4.5Github.py"
 import tkinter as tk
 from tkinter import ttk, messagebox
 import subprocess
@@ -436,7 +436,6 @@ class WindowsOptimizer:
         # --- Tweaks Tab ---
         self.tweak_vars = []
         self.tweaks_list = [
-            ("Enable Ultimate Performance Mode", self.enable_ultimate_performance, (winreg.HKEY_LOCAL_MACHINE, r"SYSTEM\CurrentControlSet\Control\Power\User\PowerSchemes", "ActivePowerScheme", "e9a42b02-d5df-448d-aa00-03f14749eb61")),
             ("Disable Location Tracking", self.disable_location, (winreg.HKEY_LOCAL_MACHINE, r"SOFTWARE\Microsoft\Windows\CurrentVersion\CapabilityAccessManager\ConsentStore\location", "Value", "Deny")),
             ("Disable Advertising ID", self.disable_ads_id, (winreg.HKEY_CURRENT_USER, r"Software\Microsoft\Windows\CurrentVersion\AdvertisingInfo", "Enabled", 0)),
             ("Disable Feedback Notifications", self.disable_feedback, (winreg.HKEY_CURRENT_USER, r"Software\Microsoft\Siuf\Rules", "NumberOfSIUFInPeriod", 0)),
@@ -454,7 +453,8 @@ class WindowsOptimizer:
 
         self.permanent_list = [
             ("Gaming Tweaks", self.apply_multimedia_tweaks,None),
-            ("Disable Unnecessary Services", self.disable_services, (winreg.HKEY_LOCAL_MACHINE, r"SYSTEM\CurrentControlSet\Services\DiagTrack", "Start", 4)),
+            ("Disable Unnecessary Services (use it with Win 10 Services Disable if u are in win 10)", self.disable_services, (winreg.HKEY_LOCAL_MACHINE, r"SYSTEM\CurrentControlSet\Services\DiagTrack", "Start", 4)),
+            ("Win 10 Service Disable", self.disable_win10_services, None),
             ("Mouse Tweaks", self.permanent_optimizations, None),
             ("Disable Animation", self.AnimeDis, None),
             ("CPU Power Tweaks(Risk)", self.apply_cpu_power_tweaks, None),
@@ -471,6 +471,7 @@ class WindowsOptimizer:
         
         self.restore_list = [
             ("Disable Gaming Tweaks", self.restore_multimedia_defaults, None),            
+            ("Win 10 Service Restore", self.Restore_win10, None),
             ("Restore Services (Default)", self.restore_services, None),
             ("Restore Bitlocker Services (Default)", self.Enable_Bitlocker, None),
             ("Restore Xbox Services (Default)", self.restore_Xbox_services, None),
@@ -500,7 +501,7 @@ class WindowsOptimizer:
             command=self.apply_changes
         ).pack(fill="x", padx=30, pady=(4, 16))
     def apply_changes(self):
-        # جمع كل المهام المحددة
+        # 1. جمع المهام المحددة
         tasks = []
         for var, package in self.bloatware_vars:
             if var.get(): tasks.append(("bloatware", package))
@@ -512,56 +513,87 @@ class WindowsOptimizer:
             if var.get(): tasks.append(("func", func))
 
         if not tasks:
-            messagebox.showinfo("Nothing Selected", "Please select at least one option.")
+            messagebox.showinfo("تنبيه", "يرجى اختيار عنصر واحد على الأقل.")
             return
 
-        # نافذة Progress
+        # 2. إنشاء نافذة التحميل (Progress Window)
         progress_win = ctk.CTkToplevel(self.root)
-        progress_win.title("Applying...")
-        progress_win.geometry("400x140")
-        progress_win.resizable(False, False)
-        progress_win.configure(fg_color="#0d1220")
-        progress_win.grab_set()
+        progress_win.title("جاري التنفيذ")
+        progress_win.geometry("400x200")
+        progress_win.attributes("-topmost", True) # لتبقى النافذة في المقدمة
+        progress_win.grab_set() # منع التفاعل مع النافذة الرئيسية حتى ينتهي
 
-        ctk.CTkLabel(progress_win, text="Applying tweaks, please wait...",
-                    font=ctk.CTkFont("Segoe UI", 12), text_color="#cdd6f4").pack(pady=(20, 8))
+        label_status = ctk.CTkLabel(progress_win, text="بدء العمليات...", font=("Segoe UI", 13))
+        label_status.pack(pady=20)
 
-        progress_bar = ctk.CTkProgressBar(progress_win, width=340, fg_color="#1a2540",
-                                        progress_color="#00aaff", corner_radius=6)
-        progress_bar.pack(pady=4)
+        progress_bar = ctk.CTkProgressBar(progress_win, width=300)
+        progress_bar.pack(pady=10)
         progress_bar.set(0)
 
-        status_label = ctk.CTkLabel(progress_win, text="", font=ctk.CTkFont("Segoe UI", 10),
-                                    text_color="#445566")
-        status_label.pack()
+        label_percent = ctk.CTkLabel(progress_win, text="0%")
+        label_percent.pack()
 
-        self.root.update()
+        # ثابت لمنع ظهور نافذة CMD السوداء
+        CREATE_NO_WINDOW = 0x08000000
 
-        total = len(tasks)
-        for i, task in enumerate(tasks):
-            if task[0] == "bloatware":
-                status_label.configure(text=f"Removing: {task[1][:40]}")
-                self.remove_package(task[1])
+        total_tasks = len(tasks)
+        
+        # 3. البدء في تنفيذ المهام واحدة تلو الأخرى
+        for index, (task_type, task_data) in enumerate(tasks):
+            # تحديث النسبة المئوية
+            current_step = (index + 1) / total_tasks
+            
+            # تحديث النص بناءً على نوع المهمة
+            if task_type == "bloatware":
+                label_status.configure(text=f"جاري إزالة: {task_data}")
             else:
-                status_label.configure(text=f"Applying: {task[1].__name__}")
-                task[1]()
+                label_status.configure(text=f"جاري تطبيق: {task_data.__name__}")
 
-            progress_bar.set((i + 1) / total)
-            progress_win.update()
+            # تحديث الواجهة الرسومية لتظهر التغييرات فوراً
+            progress_bar.set(current_step)
+            label_percent.configure(text=f"{int(current_step * 100)}%")
+            progress_win.update() # مهم جداً لتحديث الشكل قبل تنفيذ الأمر التالي
 
-        progress_win.destroy()
+            # تنفيذ المهمة فعلياً
+            try:
+                if task_type == "bloatware":
+                    cmd = f"Get-AppxPackage *{task_data}* | Remove-AppxPackage"
+                    # استخدام check=True يضمن أن البرنامج ينتظر انتهاء الأمر قبل الانتقال للسطر التالي
+                    subprocess.run(["powershell", "-Command", cmd], 
+                                 capture_output=True, 
+                                 creationflags=CREATE_NO_WINDOW,
+                                 check=False)
+                else:
+                    task_data() # تنفيذ الدالة الخاصة بالتعديلات
+            except Exception as e:
+                print(f"Error executing {task_data}: {e}")
 
+        # 4. بعد انتهاء الحلقة بالكامل (هنا يأتي الإشعار)
+        progress_win.destroy() # إغلاق نافذة التحميل أولاً
+        
+        # تحديث القوائم في الواجهة الرئيسية
+        self.refresh_all_lists() 
+        
+        # إظهار رسالة النجاح النهائية
+        if not fix_windowed_presentmode:
+            messagebox.showinfo("✅ Done", f"Applied {total} tweaks successfully!")
+
+    def refresh_all_lists(self):
+        """دالة مساعدة لتحديث القوائم بعد التعديل"""
         self.installed_packages = self.get_installed_packages()
         self.render_bloatware_list()
         self.render_tweaks_list()
         self.render_permanent_list()
         self.render_restore_list()
-        if not fix_windowed_presentmode:
-            messagebox.showinfo("✅ Done", f"Applied {total} tweaks successfully!")
+        
+
 # DEL
     def remove_package(self, package_name):
+        CREATE_NO_WINDOW = 0x08000000
         cmd = f"Get-AppxPackage *{package_name}* | Remove-AppxPackage"
-        subprocess.run(["powershell", "-Command", cmd], capture_output=True)
+        subprocess.run(["powershell", "-Command", cmd], 
+                     capture_output=True, 
+                     creationflags=CREATE_NO_WINDOW)
 
 
     def build_system_info_tab(self):
@@ -656,19 +688,6 @@ class WindowsOptimizer:
                 command=self.refresh_system_tab
             ).pack(pady=(10, 4))
 
-    def enable_ultimate_performance(self):
-        try:
-            # أولاً: تفعيل المخطط المخفي في النظام
-            cmd_enable = "powercfg -duplicatescheme e9a42b02-d5df-448d-aa00-03f14749eb61"
-            subprocess.run(cmd_enable, shell=True, capture_output=True)
-            
-            # ثانياً: ضبطه كمخطط نشط حالياً
-            cmd_set = "powercfg /setactive e9a42b02-d5df-448d-aa00-03f14749eb61"
-            subprocess.run(cmd_set, shell=True, capture_output=True)
-            
-            messagebox.showinfo("نجاح", "تم تفعيل وضع الأداء الفائق (Ultimate Performance) بنجاح!")
-        except Exception as e:
-            messagebox.showerror("خطأ", f"فشل تفعيل الوضع: {e}")
 
 
     def disable_telemetry(self):
@@ -843,7 +862,6 @@ class WindowsOptimizer:
                 plans = [
                     ("Balanced",            "381b4222-f694-41f0-9685-ff5bb260df2e"),
                     ("High Performance",    "8c5e7fda-e8bf-4a96-9a85-a6e23a8c635c"),
-                    ("Ultimate Performance","e9a42b02-d5df-448d-aa00-03f14749eb61"),
                     ("Power Saver",         "a1841308-3541-4fab-bc81-f71556f20b4a"),
                 ]
 
@@ -1232,7 +1250,6 @@ class WindowsOptimizer:
             ("SessionEnv",          "Remote Desktop Configuration"),
             ("TermService",         "Remote Desktop Services"),
             ("UmRdpService",        "Remote Desktop Services UserMode"),
-            ("RpcLocator",          "Remote Procedure Call Locator"),
             ("WiaRpc",              "Still Image Acquisition"),
             ("SEMgrSvc",            "Payments and NFC"),
             ("ScDeviceEnum",        "Smart Card Device Enumeration"),
@@ -1354,6 +1371,117 @@ class WindowsOptimizer:
         self.show_result_window("Disable Services", success, failed)
 
 
+
+    def disable_win10_services(self):
+        """تعطيل خدمات ويندوز 10 غير الضرورية عبر الريجستري"""
+        services = [
+        ("Fax", "Fax Service"),
+        ("DoSvc", "Delivery Optimization"),
+        ("wuauserv", "Windows Update Service"),
+        ("UsoSvc", "Update Orchestrator Service"),
+        ("bits", "Background Intelligent Transfer Service"),
+        ("waasmedic", "Windows Update Medic Service")
+        ]
+
+        base = r"SYSTEM\CurrentControlSet\Services"
+        success, failed = [], []
+
+        warp_installed = os.path.exists(r"C:\Program Files\Cloudflare\Cloudflare WARP\warp-svc.exe")
+        if warp_installed:
+            confirm = messagebox.askyesno(
+                "⚠️ Cloudflare WARP Detected",
+                "Will Stop Working When Disable Service.\n\n"
+                "Do you want to continue?"
+            )
+            if not confirm:
+                return
+
+        # ── خدمات ثابتة الاسم ──
+        for service, desc in services:
+            try:
+                key = winreg.CreateKeyEx(
+                    winreg.HKEY_LOCAL_MACHINE,
+                    f"{base}\\{service}",
+                    0, winreg.KEY_SET_VALUE
+                )
+                winreg.SetValueEx(key, "Start", 0, winreg.REG_DWORD, 4)
+                winreg.CloseKey(key)
+                success.append(desc)
+                print(f"[OK] Disabled: {desc}")
+            except Exception as e:
+                failed.append(desc)
+                print(f"[ERROR] {desc}: {e}")
+
+        # ── خدمات ديناميكية الاسم ──
+        dynamic_services = [
+            "MessagingService",
+            "OneSyncSvc",
+            "BluetoothUserService",
+            "PrintWorkflowUserSvc",
+            "cbdhsvc",
+        ]
+
+        try:
+            base_key = winreg.OpenKey(
+                winreg.HKEY_LOCAL_MACHINE,
+                r"SYSTEM\CurrentControlSet\Services"
+            )
+            i = 0
+            while True:
+                try:
+                    sub = winreg.EnumKey(base_key, i)
+                    for ds in dynamic_services:
+                        if sub.startswith(ds):
+                            try:
+                                key = winreg.CreateKeyEx(
+                                    winreg.HKEY_LOCAL_MACHINE,
+                                    rf"SYSTEM\CurrentControlSet\Services\{sub}",
+                                    0, winreg.KEY_SET_VALUE
+                                )
+                                winreg.SetValueEx(key, "Start", 0, winreg.REG_DWORD, 4)
+                                winreg.CloseKey(key)
+                                success.append(sub)
+                            except Exception as e:
+                                failed.append(sub)
+                    i += 1
+                except OSError:
+                    break
+            winreg.CloseKey(base_key)
+        except Exception as e:
+            print(f"[ERROR] Dynamic services: {e}")
+
+        self.show_result_window("Disable Services", success, failed)
+
+
+    def Restore_win10(self):
+        services = [
+            ("Fax", 3, "Fax Service"),
+            ("DoSvc", 2, "Delivery Optimization"),
+            ("wuauserv", 3, "Windows Update Service"),
+            ("UsoSvc", 2, "Update Orchestrator Service"),
+            ("bits", 3, "Background Intelligent Transfer Service"),
+            ("waasmedic", 3, "Windows Update Medic Service")
+        ]
+
+        base = r"SYSTEM\CurrentControlSet\Services"
+        success, failed = [], []
+
+        for service, default_val, desc in services:
+            try:
+                key = winreg.CreateKeyEx(
+                    winreg.HKEY_LOCAL_MACHINE,
+                    f"{base}\\{service}",
+                    0, winreg.KEY_SET_VALUE
+                )
+                winreg.SetValueEx(key, "Start", 0, winreg.REG_DWORD, default_val)
+                winreg.CloseKey(key)
+                success.append(desc)
+                print(f"[OK] Restored: {desc}")
+            except Exception as e:
+                failed.append(desc)
+                print(f"[ERROR] {desc}: {e}")
+
+        self.show_result_window("Restore Services", success, failed)
 
 
     def disable_Wifi(self):
@@ -1534,7 +1662,6 @@ class WindowsOptimizer:
             ("SessionEnv",          3, "Remote Desktop Configuration"),
             ("TermService",         3, "Remote Desktop Services"),
             ("UmRdpService",        3, "Remote Desktop Services UserMode"),
-            ("RpcLocator",          3, "Remote Procedure Call Locator"),
             ("WiaRpc",              3, "Still Image Acquisition"),
             ("SEMgrSvc",            3, "Payments and NFC"),
             ("ScDeviceEnum",        3, "Smart Card Device Enumeration"),
