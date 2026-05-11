@@ -1,5 +1,3 @@
-<img width="766" height="626" alt="Screenshot_8" src="https://github.com/user-attachments/assets/a2518060-20fc-45f9-b7b3-c0861276991a" />
-<img width="771" height="630" alt="Screenshot_6" src="https://github.com/user-attachments/assets/4247700e-e5f0-4c8e-8d2e-43aa22aa1711" />
 # 🛠️ Basic Tweaker V4.5
 **Optimize Windows 10 & 11 performance without sacrificing stability.**
 
