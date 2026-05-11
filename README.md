@@ -1,3 +1,5 @@
+<img width="766" height="626" alt="Screenshot_8" src="https://github.com/user-attachments/assets/a2518060-20fc-45f9-b7b3-c0861276991a" />
+<img width="771" height="630" alt="Screenshot_6" src="https://github.com/user-attachments/assets/4247700e-e5f0-4c8e-8d2e-43aa22aa1711" />
 # 🛠️ Basic Tweaker V4.5
 **Optimize Windows 10 & 11 performance without sacrificing stability.**
 
@@ -43,4 +45,10 @@ Version 4.2 introduces the **"Basic Tweaks Option"** directly into your Desktop 
 ## ⚠️ Disclaimer
 *This tool modifies system-level settings. While it is designed to be safe and reversible, please create a **System Restore Point** before use. Use at your own risk.*
 
+---
 
+## ⚠️ When u format ur pc and made this tweaks the ram usage will be like 3.1 - 3.4gb but with me its higher than that
+## When Steam and discord is Off
+<img width="771" height="630" alt="Screenshot_6" src="https://github.com/user-attachments/assets/4247700e-e5f0-4c8e-8d2e-43aa22aa1711" />
+##  When its In use
+<img width="766" height="626" alt="Screenshot_8" src="https://github.com/user-attachments/assets/a2518060-20fc-45f9-b7b3-c0861276991a" />
