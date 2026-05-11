@@ -8,8 +8,8 @@ Basic Tweaker is a lightweight utility designed to streamline your Windows exper
 ## 🚀 Performance Benchmarks
 Experience a significant drop in resource usage. After applying the tweaks, the system achieves a much lighter footprint:
 
-* **RAM Usage:** Reduced from ~4.1GB to **3.1GB**
-* **Process Count:** Dropped from 160+ to **~126**
+* **RAM Usage:** Reduced from ~4.4GB to **~3.3GB**
+* **Process Count:** Dropped from 160+ to **~120**
 
 ---
 
