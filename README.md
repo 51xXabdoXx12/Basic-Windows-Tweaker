@@ -52,5 +52,5 @@ Version 4.2 introduces the **"Basic Tweaks Option"** directly into your Desktop 
 ---
 
 ##  When Tweaks Applied
-## Test in bannerlord multiplayer 75 - 110 but sometimes be 62 - 110 FPS
-<img width="766" height="626" alt="Screenshot_8" src="https://github.com/user-attachments/assets/a2518060-20fc-45f9-b7b3-c0861276991a" />
+## Test in bannerlord multiplayer 75 - 110 but sometimes be 62 - 80 FPS
+<img width="773" height="586" alt="Screenshot_7" src="https://github.com/user-attachments/assets/848a7443-447c-4ac8-8bef-bf4a80690bbe" />
