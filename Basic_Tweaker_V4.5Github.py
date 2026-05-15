@@ -447,7 +447,6 @@ class WindowsOptimizer:
             ("Disable Bittlocker Services", self.disable_Bitlocker_Services, None),
             ("Delete Xbox Apps", self.remove_xbox_apps, None),
             ("Restore Windows 10 Classic Context Menu", self.enable_classic_context_menu, (winreg.HKEY_CURRENT_USER, r"Software\Classes\CLSID\{86ca1aa0-34aa-4e8b-a509-50c905bae2a2}\InprocServer32", "", "")),
-            ("Disable Wifi", self.disable_Wifi, None),
             ("Add Basic Tweaks Options To Right-Click", self.add_context_menu_tools, None),
             ("Debloat Microsoft Edge Browser", self.remove_microsoft_edge, (winreg.HKEY_LOCAL_MACHINE, r"SOFTWARE\Microsoft\Windows NT\CurrentVersion\Image File Execution Options\msedge.exe", "Debugger", "systray.exe"))
         ]
@@ -464,7 +463,6 @@ class WindowsOptimizer:
             ("Restore Xbox Apps (Default)", self.restore_xbox_apps, None),
             ("Restore Windows 11 Modern Context Menu", self.restore_windows11_context_menu, (winreg.HKEY_CURRENT_USER, r"Software\Classes\CLSID\{86ca1aa0-34aa-4e8b-a509-50c905bae2a2}", "", "NOT_FOUND")),
             ("Enable Microsoft Edge (Unblock)", self.restore_edge, (winreg.HKEY_LOCAL_MACHINE, r"SOFTWARE\Microsoft\Windows NT\CurrentVersion\Image File Execution Options\msedge.exe", "Debugger", "")),
-            ("Enable Wifi", self.Enable_Wifi, None),
             ("Remove Basic Tweaks Options from Right-Click", self.remove_context_menu_tools, None),
         ]
 
@@ -1467,61 +1465,7 @@ class WindowsOptimizer:
         self.show_result_window("Restore Services", success, failed)
 
 
-    def disable_Wifi(self):
-        services = [
-            ("WFDSConMgrSvc", "Wi-Fi Direct Services Connection Manager"),
-            ("WlanSvc",       "WLAN AutoConfig"),
-            ("WwanSvc",       "WWAN AutoConfig"),
-            ("NcaSvc",        "Network Connected Devices Auto-Setup")
-        ]
-        base = r"SYSTEM\CurrentControlSet\Services"
-        success, failed = [], []
 
-        for service, desc in services:
-            try:
-                key = winreg.CreateKeyEx(
-                    winreg.HKEY_LOCAL_MACHINE,
-                    f"{base}\\{service}",
-                    0, winreg.KEY_SET_VALUE
-                )
-                winreg.SetValueEx(key, "Start", 0, winreg.REG_DWORD, 4)  # 4 = Disabled
-                winreg.CloseKey(key)
-                success.append(desc)
-                print(f"[OK] Disabled: {desc}")
-            except Exception as e:
-                failed.append(desc)
-                print(f"[ERROR] {desc}: {e}")
-
-        self.show_result_window("Disable Wifi", success, failed)
-
-        
-
-    def Enable_Wifi(self):
-        services = [
-        ("WFDSConMgrSvc", 3, "Wi-Fi Direct Services Connection Manager"),
-        ("WlanSvc",       2, "WLAN AutoConfig"),
-        ("WwanSvc",       3, "WWAN AutoConfig"),
-        ("NcaSvc",        3, "Network Connected Devices Auto-Setup"),
-        ]
-        base = r"SYSTEM\CurrentControlSet\Services"
-        success, failed = [], []
-
-        for service, default_val, desc in services:
-            try:
-                key = winreg.CreateKeyEx(
-                    winreg.HKEY_LOCAL_MACHINE,
-                    f"{base}\\{service}",
-                    0, winreg.KEY_SET_VALUE
-                )
-                winreg.SetValueEx(key, "Start", 0, winreg.REG_DWORD, default_val)
-                winreg.CloseKey(key)
-                success.append(desc)
-                print(f"[OK] Restored: {desc}")
-            except Exception as e:
-                failed.append(desc)
-                print(f"[ERROR] {desc}: {e}")
-
-        self.show_result_window("Enable Wifi", success, failed)
     def disable_Xbox_Services(self):
         services = [
             # ---- Xbox & Gaming (if not a gamer) ----
