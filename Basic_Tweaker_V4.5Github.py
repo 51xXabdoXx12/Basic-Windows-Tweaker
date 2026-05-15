@@ -375,7 +375,6 @@ class WindowsOptimizer:
             ("Bing Finance", "Microsoft.BingFinance"),
             ("Mail and Calendar", "microsoft.windowscommunicationsapps"),
             ("Outlook", "Microsoft.OutlookForWindows"),
-            ("Microsoft Teams", "MicrosoftTeams"),
             ("Xbox Game Speech", "Microsoft.XboxGameSpeechWindow"),
             ("OneNote Windows 10", "Microsoft.Office.OneNote"),
 
@@ -399,7 +398,7 @@ class WindowsOptimizer:
             ("Asus Aura", "Asus.AsusAura"),
             ("CyberLink PowerDVD", "CyberLinkCorp.PowerDVD"),
             ("Dropbox", "Dropbox.Dropbox"),
-
+            ("WhatsApp", "Microsoft.WhatsAppDesktop"),
             ("Print 3D", "Microsoft.Print3D"),
             ("Family", "Microsoft.MicrosoftFamilyFeatures"),
             ("Dev Home", "Microsoft.Windows.DevHome"),
@@ -409,7 +408,10 @@ class WindowsOptimizer:
             ("Windows Camera", "Microsoft.WindowsCamera"),
             ("Windows Calculator", "Microsoft.WindowsCalculator"),
             ("Sound Recorder", "Microsoft.WindowsSoundRecorder"),
-            ("Power BI", "Microsoft.MicrosoftPowerBIDesktop")
+            ("Power BI", "Microsoft.MicrosoftPowerBIDesktop"),
+            ("Microsoft Teams", "MicrosoftTeams*"),
+            ("WhatsApp", "Microsoft.WhatsAppDesktop"),
+            ("LinkedIn", "Microsoft.LinkedInForWindows"),
         ]
 
         self.render_bloatware_list()
@@ -715,75 +717,33 @@ class WindowsOptimizer:
         try:
             base_path = r"SOFTWARE\Microsoft\Windows NT\CurrentVersion\Multimedia\SystemProfile"
 
-            # ===== SystemProfile =====
             key = winreg.CreateKeyEx(winreg.HKEY_LOCAL_MACHINE, base_path, 0, winreg.KEY_SET_VALUE)
-            winreg.SetValueEx(key, "SchedulerTimerResolution", 0, winreg.REG_DWORD, 0x00002710)  # 10000
-            winreg.SetValueEx(key, "NoLazyMode",               0, winreg.REG_DWORD, 0x00000000)
             winreg.SetValueEx(key, "NetworkThrottlingIndex", 0, winreg.REG_DWORD, 0x0000000a)
-            winreg.SetValueEx(key, "LazyModeTimeout",           0, winreg.REG_DWORD, 0xffffffff)
-            winreg.SetValueEx(key, "SchedulerPeriod",           0, winreg.REG_DWORD, 0x000f4240)  # 1000000
-            winreg.SetValueEx(key, "IdleDetectionCycles",       0, winreg.REG_DWORD, 0x00000001)
-            winreg.SetValueEx(key, "SystemResponsiveness", 0, winreg.REG_DWORD, 0x0000000a) # 10 = أقصى استجابة للألعاب
+            winreg.SetValueEx(key, "SystemResponsiveness", 0, winreg.REG_DWORD, 0x0000000a)  # Keep 10 for gaming
             winreg.CloseKey(key)
 
-            # ===== Audio / Pro Audio / Playback / Games =====
-            for task in ["Audio", "Pro Audio", "Playback", "Games"]:
-                task_path = base_path + rf"\Tasks\{task}"
-                key = winreg.CreateKeyEx(winreg.HKEY_LOCAL_MACHINE, task_path, 0, winreg.KEY_SET_VALUE)
-                winreg.SetValueEx(key, "Priority",              0, winreg.REG_DWORD, 0x00000001)
-                winreg.SetValueEx(key, "Scheduling Category",   0, winreg.REG_SZ,    "High")
-                winreg.SetValueEx(key, "SFIO Priority",         0, winreg.REG_SZ,    "High")
-                winreg.SetValueEx(key, "Background Only",       0, winreg.REG_SZ,    "False")
-                winreg.SetValueEx(key, "Clock Rate",            0, winreg.REG_DWORD, 0x00002710)  # 10000
-                winreg.SetValueEx(key, "Priority When Yielded", 0, winreg.REG_DWORD, 0x00000008)
-                winreg.SetValueEx(key, "GPU Priority",          0, winreg.REG_DWORD, 0x00000008)
-                winreg.CloseKey(key)
 
-            # ===== Kernel =====
-            kernel_path = r"SYSTEM\CurrentControlSet\Control\Session Manager\kernel"
-            key = winreg.CreateKeyEx(winreg.HKEY_LOCAL_MACHINE, kernel_path, 0, winreg.KEY_SET_VALUE)
-            winreg.SetValueEx(key, "SerializeTimerExpiration",       0, winreg.REG_DWORD, 0x00000001)
-            winreg.SetValueEx(key, "GlobalTimerResolutionRequests",  0, winreg.REG_DWORD, 0x00000001)
-            winreg.SetValueEx(key, "DpcWatchdogProfileOffset",       0, winreg.REG_DWORD, 0x00000001)
-            winreg.CloseKey(key)
-
-            # ===== Memory Manager =====
             mem_path = r"SYSTEM\CurrentControlSet\Control\Session Manager\Memory Management"
             key = winreg.CreateKeyEx(winreg.HKEY_LOCAL_MACHINE, mem_path, 0, winreg.KEY_SET_VALUE)
-            winreg.SetValueEx(key, "LargeSystemCache",       0, winreg.REG_DWORD, 0x00000000)
-            winreg.SetValueEx(key, "DisablePagingExecutive", 0, winreg.REG_DWORD, 0x00000001)  # الـ drivers في الـ RAM
-            winreg.SetValueEx(key, "SecondLevelDataCache",   0, winreg.REG_DWORD, 0x00000400)  # 1024 KB
-            winreg.SetValueEx(key, "ThirdLevelDataCache",    0, winreg.REG_DWORD, 0x00000800)  # 2048 KB
+            winreg.SetValueEx(key, "LargeSystemCache", 0, winreg.REG_DWORD, 0x00000000)
+            winreg.SetValueEx(key, "DisablePagingExecutive", 0, winreg.REG_DWORD, 0x00000001)  # KEEP - good for performance
             winreg.CloseKey(key)
 
-            # ===== Priority Control =====
-            priority_path = r"SYSTEM\CurrentControlSet\Control\PriorityControl"
-            key = winreg.CreateKeyEx(winreg.HKEY_LOCAL_MACHINE, priority_path, 0, winreg.KEY_SET_VALUE)
-            winreg.SetValueEx(key, "Win32PrioritySeparation", 0, winreg.REG_DWORD, 0x00000026)  # 38 = أقصى أولوية للـ foreground
-            winreg.CloseKey(key)
 
-            # ===== GPU Scheduling =====
-            graphics_path = r"SYSTEM\CurrentControlSet\Control\GraphicsDrivers"
-            key = winreg.CreateKeyEx(winreg.HKEY_LOCAL_MACHINE, graphics_path, 0, winreg.KEY_SET_VALUE)
-            winreg.SetValueEx(key, "HwSchMode",              0, winreg.REG_DWORD, 0x00000002)  # Hardware GPU Scheduling
-            winreg.SetValueEx(key, "PlatformSupportMiracast", 0, winreg.REG_DWORD, 0x00000000)  # إيقاف Miracast
-            winreg.CloseKey(key)
-
-            # ===== Game Mode =====
             game_path = r"SOFTWARE\Microsoft\GameBar"
             key = winreg.CreateKeyEx(winreg.HKEY_CURRENT_USER, game_path, 0, winreg.KEY_SET_VALUE)
-            winreg.SetValueEx(key, "AllowAutoGameMode",   0, winreg.REG_DWORD, 0x00000001)
+            winreg.SetValueEx(key, "AllowAutoGameMode", 0, winreg.REG_DWORD, 0x00000001)
             winreg.SetValueEx(key, "AutoGameModeEnabled", 0, winreg.REG_DWORD, 0x00000001)
             winreg.CloseKey(key)
 
-            # ===== I/O System =====
             io_path = r"SYSTEM\CurrentControlSet\Control\Session Manager\I/O System"
             key = winreg.CreateKeyEx(winreg.HKEY_LOCAL_MACHINE, io_path, 0, winreg.KEY_SET_VALUE)
             winreg.SetValueEx(key, "CountOperations", 0, winreg.REG_DWORD, 0x00000000)
             winreg.CloseKey(key)
 
-            messagebox.showinfo("✅ Gaming Tweaks", "All multimedia and performance tweaks applied!")
-            print("Gaming tweaks applied successfully")
+            messagebox.showinfo("✅ Gaming Tweaks", "Safe gaming tweaks applied!\n\nRemoved aggressive GPU settings that caused 100% usage.")
+            print("Safe gaming tweaks applied - no GPU forcing")
+
 
         except Exception as e:
             print("Error:", e)
@@ -1023,160 +983,393 @@ class WindowsOptimizer:
         ).pack(pady=(0, 16))
 
         win.bind("<Return>", lambda e: win.destroy())
+
+
     def disable_services(self):
-        services = [
-            ("BTAGService",         "Bluetooth Audio Gateway"),
-            ("bthserv",             "Bluetooth Support Service"),
-            ("lfsvc",               "Geolocation Service"),
-            ("DiagTrack",           "Connected User Experiences & Telemetry"),
-            ("fhsvc",         "File History Service"),
-            ("diagsvc",         "Diagnostic Execution Service"),
-            ("HvHost",              "Hyper-V Host"),
-            ("vmickvpexchange",     "Hyper-V Data Exchange"),
-            ("vmicguestinterface",  "Hyper-V Guest Interface"),
-            ("vmicshutdown",        "Hyper-V Shutdown"),
-            ("vmicheartbeat",       "Hyper-V Heartbeat"),
-            ("vmicvmsession",       "Hyper-V VM Session"),
-            ("vmicrdv",             "Hyper-V Remote Desktop"),
-            ("vmictimesync",        "Hyper-V Time Sync"),
-            ("vmicvss",             "Hyper-V VSS"),
-            ("PhoneSvc",            "Phone Service"),
-            ("Spooler",             "Print Spooler"),
-            ("QWAVE",               "Quality Windows Audio Visual Experience"),
-            ("SysMain",             "SysMain (Superfetch)"),
-            ("WbioSrvc",            "Windows Biometric Service"),
-            ("wisvc",               "Windows Insider Service"),
-            ("WMPNetworkSvc",       "Windows Media Player Network Sharing"),
-            ("icssvc",              "Internet Connection Sharing"),
-            ("SharedAccess",        "Internet Connection Sharing (ICS)"),
-            ("WerSvc",              "Windows Error Reporting Service"),
-            ("PcaSvc",              "Program Compatibility Assistant"),
-            ("wercplsupport",       "Problem Reports Control Panel"),
-            ("MapsBroker",          "Downloaded Maps Manager"),
-            ("dmwappushservice",    "Device Management WAP Push"),
-            ("LanmanServer",        "Server (File Sharing)"),
-            ("LanmanWorkstation",   "Workstation (Network Files)"),
-            ("SessionEnv",          "Remote Desktop Configuration"),
-            ("TermService",         "Remote Desktop Services"),
-            ("UmRdpService",        "Remote Desktop Services UserMode"),
-            ("WiaRpc",              "Still Image Acquisition"),
-            ("SEMgrSvc",            "Payments and NFC"),
-            ("ScDeviceEnum",        "Smart Card Device Enumeration"),
-            ("SCardSvr",            "Smart Card"),
-            ("SCPolicySvc",         "Smart Card Removal Policy"),
-            ("CloudBackupRestoreSvc","Cloud Backup and Restore"),
-            ("FileSyncHelper",      "File Sync Helper"),
-            ("OneDrive",            "OneDrive Sync"),
-            ("MicrosoftEdgeElevationService", "Microsoft Edge Elevation"),
-            ("edgeupdate",          "Microsoft Edge Update"),
-            ("edgeupdatem",         "Microsoft Edge Update (m)"),
-            ("PrintNotify",         "Printer Extensions and Notifications"),
-            ("VaultSvc",            "Credential Manager"),
-            ("WinRM",               "Windows Remote Management"),
-            ("FDResPub",            "Function Discovery Resource Pub"),
-            ("fdPHost",             "Function Discovery Provider"),
-            ("WpcMonSvc",           "Parental Controls"),
-            ("InventorySvc",        "Windows Inventory Service"),
-            ("DsSvc",               "Data Sharing Service"),
-            ("RetailDemoService",   "Retail Demo Service"),
-            ("BthAvctpSvc",         "AVCTP Service"),
-            ("BthHFSrv",            "Bluetooth Handsfree Service"),
-            ("BthRcManSvc",         "Bluetooth Remote Control Manager"),
-            ("WManSvc",             "Windows Mobile Hotspot Service"),
-            ("DusmSvc",             "Data Usage Service"),
-            ("diagnosticshub.standardcollector.service", "Diagnostics Hub Standard Collector"),
-            ("NfcService",          "NFC Service"),
-            ("TapiSrv",             "Telephony"),
-            ("lltdsvc",             "Link-Layer Topology Discovery"),
-            ("SSDPSRV",             "SSDP Discovery"),
-            ("upnphost",            "UPnP Device Host"),
-            ("p2psvc",              "Peer Networking Grouping"),
-            ("p2pimsvc",            "Peer Networking Identity Manager"),
-            ("PNRPsvc",             "Peer Name Resolution Protocol"),
-            ("PNRPAutoReg",         "PNRP Machine Name Publication"),
-            ("Wecsvc",              "Windows Event Collector"),
-            ("MSiSCSI",             "Microsoft iSCSI Initiator"),
-            ("NetTcpPortSharing",   "Net.Tcp Port Sharing"),
-            ("MSDTC",               "Distributed Transaction Coordinator"),
-            ("RemoteRegistry",      "Remote Registry"),
-            ("WalletService",       "Wallet Service"),
-            ("embeddedmode",        "Embedded Mode"),
-            ("EntAppSvc",           "Enterprise App Management"),
-            ("stisvc",              "Windows Image Acquisition"),
-            ("MixedRealityOpenXRSvc","Windows Mixed Reality OpenXR"),
-            ("UevAgentService",     "User Experience Virtualization"),
-            ("lmhosts",             "TCP/IP NetBIOS Helper"),
-            ("SNMPTRAP",            "SNMP Trap"),
-            ("RmSvc",               "Radio And Airplane mode service"),
+        """Open service selection dialog with descriptions"""
+        # Create selection window
+        service_window = ctk.CTkToplevel(self.root)
+        service_window.title("Select Services to Disable")
+        service_window.geometry("950x750")
+        service_window.minsize(800, 600)
+        service_window.configure(fg_color="#0d1220")
+        service_window.grab_set()
+        
+        # Make window resizable
+        service_window.grid_rowconfigure(0, weight=0)
+        service_window.grid_rowconfigure(1, weight=1)
+        service_window.grid_columnconfigure(0, weight=1)
+        
+        # Header
+        header = ctk.CTkFrame(service_window, fg_color="#111827", corner_radius=10)
+        header.grid(row=0, column=0, sticky="ew", padx=10, pady=(10, 5))
+        
+        ctk.CTkLabel(
+            header,
+            text="🔧 Service Configuration - Select Services to Disable",
+            font=ctk.CTkFont(family="Segoe UI", size=18, weight="bold"),
+            text_color="#00aaff"
+        ).pack(side="left", padx=15, pady=10)
+        
+        # Select/Deselect All buttons
+        btn_frame = ctk.CTkFrame(header, fg_color="transparent")
+        btn_frame.pack(side="right", padx=10)
+        
+        def select_all():
+            for var in service_vars:
+                var.set(True)
+            update_selection_count()
+        
+        def deselect_all():
+            for var in service_vars:
+                var.set(False)
+            update_selection_count()
+        
+        ctk.CTkButton(
+            btn_frame, text="Select All", width=90, height=30,
+            fg_color="#00aaff", hover_color="#0077cc",
+            command=select_all
+        ).pack(side="left", padx=3)
+        
+        ctk.CTkButton(
+            btn_frame, text="Deselect All", width=90, height=30,
+            fg_color="#445566", hover_color="#334455",
+            command=deselect_all
+        ).pack(side="left", padx=3)
+        
+        # Selection count label
+        count_label = ctk.CTkLabel(header, text="Selected: 0 services", font=ctk.CTkFont(size=12), text_color="#88aaff")
+        count_label.pack(side="right", padx=15)
+        
+        # Warning label
+        warning_frame = ctk.CTkFrame(service_window, fg_color="#331100", corner_radius=8)
+        warning_frame.grid(row=2, column=0, sticky="ew", padx=10, pady=(5, 5))
+        
+        ctk.CTkLabel(
+            warning_frame,
+            text="⚠️ Warning: Disabling critical services may affect system functionality. Only disable services you understand!",
+            font=ctk.CTkFont(family="Segoe UI", size=11),
+            text_color="#ffaa44",
+            wraplength=850
+        ).pack(padx=10, pady=6)
+        
+        # Scrollable area for services
+        scroll = ctk.CTkScrollableFrame(service_window, fg_color="transparent", scrollbar_button_color="#1a2540")
+        scroll.grid(row=1, column=0, sticky="nsew", padx=10, pady=(5, 10))
+        
+        # ===== STATIC SERVICES LIST (always shown) =====
+        static_services = [
+            # Service Name, Display Name, Description
+            ("BTAGService", "Bluetooth Audio Gateway Service", "Manages Bluetooth audio devices. DISABLE if you don't use Bluetooth headphones/speakers."),
+            ("bthserv", "Bluetooth Support Service", "Core Bluetooth functionality. DISABLE if you never use Bluetooth."),
+            ("lfsvc", "Geolocation Service", "Tracks your physical location. DISABLE for privacy."),
+            ("DiagTrack", "Connected User Experiences and Telemetry", "Collects usage data and sends to Microsoft. DISABLE for privacy & performance."),
+            ("fhsvc", "File History Service", "Automatic file backups. DISABLE if you don't use File History."),
+            ("diagsvc", "Diagnostic Execution Service", "Runs diagnostic tools. DISABLE to save resources."),
+            ("HvHost", "Hyper-V Host Service", "Core Hyper-V virtualization. DISABLE if no virtual machines."),
+            ("PhoneSvc", "Phone Service", "Your Phone app integration. DISABLE if you don't link phone to PC."),
+            ("Spooler", "Print Spooler", "Manages print jobs. DISABLE if you never print (saves ~50MB RAM)."),
+            ("QWAVE", "Quality Windows Audio Video Experience", "Optimizes audio/video over networks. DISABLE for gaming (reduces latency)."),
+            ("SysMain", "SysMain", "Preloads apps into RAM. DISABLE if you have SSD (saves RAM)."),
+            ("WbioSrvc", "Windows Biometric Service", "Fingerprint/face recognition. DISABLE if not using Windows Hello."),
+            ("wisvc", "Windows Insider Service", "Receives Insider Preview builds. DISABLE if not in Insider Program."),
+            ("WMPNetworkSvc", "Windows Media Player Network Sharing Service", "Shares media libraries over network. DISABLE if not needed."),
+            ("icssvc", "Internet Connection Sharing", "Shares internet with other devices. DISABLE for single PC."),
+            ("SharedAccess", "Internet Connection Sharing (ICS)", "Same as above. DISABLE if not sharing internet."),
+            ("WerSvc", "Windows Error Reporting Service", "Sends crash reports to Microsoft. DISABLE for privacy."),
+            ("PcaSvc", "Program Compatibility Assistant Service", "Checks app compatibility. DISABLE to save ~30MB RAM."),
+            ("wercplsupport", "Problem Reports and Solutions Control Panel Support", "Manages problem reports. DISABLE to stop error reporting."),
+            ("MapsBroker", "Downloaded Maps Manager", "Downloads offline maps. DISABLE if you don't use Maps app."),
+            ("dmwappushservice", "Device Management WAP Push Service", "Push notifications for device management. DISABLE for privacy."),
+            ("LanmanServer", "Server", "File/printer sharing. DISABLE if you don't share files on network."),
+            ("LanmanWorkstation", "Workstation", "Access network files. ⚠️ CAUTION: Needed for network drives!"),
+            ("SessionEnv", "Remote Desktop Configuration", "RDP configuration. DISABLE if not using Remote Desktop."),
+            ("TermService", "Remote Desktop Services", "Core Remote Desktop service. DISABLE if not using RDP."),
+            ("UmRdpService", "Remote Desktop Services UserMode Port Redirector", "RDP user session management. DISABLE if not using RDP."),
+            ("WiaRpc", "Still Image Acquisition Events", "Scanner/camera support. DISABLE if no scanners/cameras."),
+            ("SEMgrSvc", "Payments and NFC/SE Manager", "NFC payments. DISABLE if not using phone payments on PC."),
+            ("ScDeviceEnum", "Smart Card Device Enumeration Service", "Finds smart card readers. DISABLE for home users."),
+            ("SCardSvr", "Smart Card", "Manages smart card access. DISABLE for home users."),
+            ("SCPolicySvc", "Smart Card Removal Policy", "Locks PC when card removed. DISABLE if not using smart cards."),
+            ("CloudBackupRestoreSvc", "Cloud Backup and Restore", "Windows cloud backup. DISABLE if using other backup."),
+            ("FileSyncHelper", "File Sync Helper", "Helps OneDrive sync files. DISABLE if no OneDrive."),
+            ("OneDrive", "OneDrive Updater Service", "OneDrive cloud sync. DISABLE if you don't use OneDrive."),
+            ("MicrosoftEdgeElevationService", "Microsoft Edge Elevation Service", "Allows Edge to update. DISABLE to stop auto-updates."),
+            ("edgeupdate", "Microsoft Edge Update Service", "Automatic Edge updates. DISABLE to control manually."),
+            ("edgeupdatem", "Microsoft Edge Update Service (edgeupdatem)", "Secondary Edge updater. DISABLE same as above."),
+            ("PrintNotify", "Printer Extensions and Notifications", "Printer popups and alerts. DISABLE if no printer."),
+            ("VaultSvc", "Credential Manager", "Saves passwords. ⚠️ CAUTION: Disabling loses saved passwords!"),
+            ("WinRM", "Windows Remote Management (WS-Management)", "Remote command execution. ⚠️ SECURITY RISK - DISABLE!"),
+            ("FDResPub", "Function Discovery Resource Publication", "Publishes PC to network. DISABLE for security."),
+            ("fdPHost", "Function Discovery Provider Host", "Finds network devices. DISABLE for security."),
+            ("WpcMonSvc", "Parental Controls", "Family safety and screen time. DISABLE if not needed."),
+            ("InventorySvc", "Windows Inventory Service", "App inventory collection. DISABLE for privacy."),
+            ("DsSvc", "Data Sharing Service", "Data sharing between apps. DISABLE if not needed."),
+            ("RetailDemoService", "Retail Demo Service", "Demo mode for retail. DISABLE on personal PCs."),
+            ("BthAvctpSvc", "AVCTP Service", "Audio/Video control for Bluetooth. DISABLE if no BT audio."),
+            ("BthHFSrv", "Bluetooth Handsfree Service", "Handsfree calling profile. DISABLE if no calls on PC."),
+            ("BthRcManSvc", "Bluetooth Remote Control Manager", "Manages Bluetooth remotes. DISABLE if no BT remotes."),
+            ("WManSvc", "Windows Mobile Hotspot Service", "Creates mobile hotspot. DISABLE if not sharing WiFi."),
+            ("DusmSvc", "Data Usage Service", "Tracks network data usage. DISABLE if no data cap."),
+            ("diagnosticshub.standardcollector.service", "Microsoft (R) Diagnostics Hub Standard Collector", "Diagnostic data collection. DISABLE for privacy."),
+            ("NfcService", "NFC Service", "Near Field Communication. DISABLE if no NFC reader."),
+            ("TapiSrv", "Telephony", "Phone/modem support. DISABLE if no dial-up or fax."),
+            ("lltdsvc", "Link-Layer Topology Discovery Mapper", "Maps network topology. DISABLE if not needed."),
+            ("SSDPSRV", "SSDP Discovery", "Finds UPnP devices. ⚠️ SECURITY RISK - DISABLE!"),
+            ("upnphost", "UPnP Device Host", "Hosts UPnP devices. ⚠️ SECURITY RISK - DISABLE!"),
+            ("p2psvc", "Peer Networking Grouping", "P2P collaboration. DISABLE for security."),
+            ("p2pimsvc", "Peer Networking Identity Manager", "P2P identity management. DISABLE for security."),
+            ("PNRPsvc", "Peer Name Resolution Protocol", "P2P name resolution. DISABLE for security."),
+            ("PNRPAutoReg", "PNRP Machine Name Publication Service", "Publishes PC name for P2P. DISABLE for security."),
+            ("Wecsvc", "Windows Event Collector", "Collects events from other PCs. DISABLE for home users."),
+            ("MSiSCSI", "Microsoft iSCSI Initiator Service", "Connects to storage networks. DISABLE if not using iSCSI."),
+            ("NetTcpPortSharing", "Net.Tcp Port Sharing Service", "Shares TCP ports for WCF. DISABLE if not needed."),
+            ("MSDTC", "Distributed Transaction Coordinator", "Database transactions. DISABLE for home users."),
+            ("RemoteRegistry", "Remote Registry", "Remote registry access. ⚠️ SECURITY RISK - DISABLE IMMEDIATELY!"),
+            ("WalletService", "Wallet Service", "Digital wallet management. DISABLE if not used."),
+            ("embeddedmode", "Embedded Mode", "For embedded devices. DISABLE on desktop PCs."),
+            ("EntAppSvc", "Enterprise App Management Service", "Business app management. DISABLE for home users."),
+            ("stisvc", "Windows Image Acquisition (WIA)", "Scanner/camera support. DISABLE if no scanners/cameras."),
+            ("MixedRealityOpenXRSvc", "Windows Mixed Reality OpenXR Service", "VR headset support. DISABLE if no VR."),
+            ("UevAgentService", "User Experience Virtualization Service", "Roams settings between PCs. DISABLE for single PC."),
+            ("lmhosts", "TCP/IP NetBIOS Helper", "Legacy NetBIOS support. DISABLE for security."),
+            ("SNMPTRAP", "SNMP Trap", "Network monitoring. DISABLE if not managing network."),
+            ("RmSvc", "Radio Management Service", "Manages radio on/off. DISABLE if no airplane mode need."),
+            
+            # ===== HYPER-V SERVICES (continued) =====
+            ("vmickvpexchange", "Hyper-V Data Exchange Service", "Shares data between host and VMs. DISABLE if not using Hyper-V."),
+            ("vmicguestinterface", "Hyper-V Guest Service Interface", "VM communication service. DISABLE if not using Hyper-V."),
+            ("vmicshutdown", "Hyper-V Shutdown Service", "Allows VMs to shutdown host. DISABLE if not using Hyper-V."),
+            ("vmicheartbeat", "Hyper-V Heartbeat Service", "Monitors if VMs are running. DISABLE if not using Hyper-V."),
+            ("vmicvmsession", "Hyper-V VM Session Service", "Manages VM sessions. DISABLE if not using Hyper-V."),
+            ("vmicrdv", "Hyper-V Remote Desktop Virtualization Service", "Remote access to VMs. DISABLE if not using Hyper-V."),
+            ("vmictimesync", "Hyper-V Time Synchronization Service", "Syncs time between host and VMs. DISABLE if not using Hyper-V."),
+            ("vmicvss", "Hyper-V Volume Shadow Copy Requestor", "VM backups. DISABLE if not using Hyper-V."),
         ]
-
-        base = r"SYSTEM\CurrentControlSet\Services"
-        success, failed = [], []
-
-        warp_installed = os.path.exists(r"C:\Program Files\Cloudflare\Cloudflare WARP\warp-svc.exe")
-        if warp_installed:
-            confirm = messagebox.askyesno(
-                "⚠️ Cloudflare WARP Detected",
-                "Will Stop Working When Disable Service.\n\n"
-                "Do you want to continue?"
+        
+        service_vars = []
+        service_items = []  # Store (service_name, display_name)
+        
+        # Function to update selection count
+        def update_selection_count():
+            selected = sum(1 for var in service_vars if var.get())
+            count_label.configure(text=f"Selected: {selected} services")
+        
+        # ===== ADD STATIC SERVICES =====
+        for service_name, display_name, description in static_services:
+            frame = ctk.CTkFrame(scroll, fg_color="#111827", corner_radius=8)
+            frame.pack(fill="x", padx=5, pady=3)
+            
+            var = tk.BooleanVar()
+            service_vars.append(var)
+            service_items.append((service_name, display_name))
+            
+            var.trace('w', lambda *args: update_selection_count())
+            
+            cb = ctk.CTkCheckBox(
+                frame,
+                text=f"{display_name}",
+                variable=var,
+                font=ctk.CTkFont(family="Segoe UI", size=12, weight="bold"),
+                text_color="#00aaff",
+                fg_color="#00aaff",
+                hover_color="#0077cc",
+                checkmark_color="white"
             )
-            if not confirm:
-                return
-
-        for service, desc in services:
-            try:
-                key = winreg.CreateKeyEx(
-                    winreg.HKEY_LOCAL_MACHINE,
-                    f"{base}\\{service}",
-                    0, winreg.KEY_SET_VALUE
-                )
-                winreg.SetValueEx(key, "Start", 0, winreg.REG_DWORD, 4)
-                winreg.CloseKey(key)
-                success.append(desc)
-                print(f"[OK] Disabled: {desc}")
-            except Exception as e:
-                failed.append(desc)
-                print(f"[ERROR] {desc}: {e}")
-
-        dynamic_services = [
-            "MessagingService",
-            "OneSyncSvc",
-            "BluetoothUserService",
-            "PrintWorkflowUserSvc",
-            "cbdhsvc",
+            cb.pack(side="left", padx=(10, 5), pady=8)
+            
+            desc_label = ctk.CTkLabel(
+                frame,
+                text=description,
+                font=ctk.CTkFont(family="Segoe UI", size=10),
+                text_color="#8899aa",
+                wraplength=650,
+                justify="left"
+            )
+            desc_label.pack(side="left", padx=(5, 10), pady=8, fill="x", expand=True)
+        
+        # ===== DISCOVER AND ADD DYNAMIC SERVICES =====
+        dynamic_service_patterns = [
+            ("MessagingService", "Messaging Service", "Handles SMS and chat messaging. DISABLE if you don't use Windows messaging apps."),
+            ("OneSyncSvc", "Sync Host Service", "Synchronizes mail, contacts, and calendar. DISABLE if not using built-in mail/calendar apps."),
+            ("BluetoothUserService", "Bluetooth User Support Service", "Handles Bluetooth user interactions. DISABLE if you don't use Bluetooth."),
+            ("PrintWorkflowUserSvc", "Print Workflow Service", "Manages modern print dialogs. DISABLE if you don't print."),
+            ("cbdhsvc", "Clipboard User Service", "Handles cloud clipboard sync. DISABLE if you don't sync clipboard between devices."),
         ]
-
+        
         try:
             base_key = winreg.OpenKey(
                 winreg.HKEY_LOCAL_MACHINE,
                 r"SYSTEM\CurrentControlSet\Services"
             )
             i = 0
+            discovered_services = set()  # To avoid duplicates
+            
             while True:
                 try:
                     sub = winreg.EnumKey(base_key, i)
-                    for ds in dynamic_services:
-                        if sub.startswith(ds):
-                            try:
-                                key = winreg.CreateKeyEx(
-                                    winreg.HKEY_LOCAL_MACHINE,
-                                    rf"SYSTEM\CurrentControlSet\Services\{sub}",
-                                    0, winreg.KEY_SET_VALUE
-                                )
-                                winreg.SetValueEx(key, "Start", 0, winreg.REG_DWORD, 4)
-                                winreg.CloseKey(key)
-                                success.append(sub)
-                            except Exception as e:
-                                failed.append(sub)
+                    for pattern, display_base, description_base in dynamic_service_patterns:
+                        if sub.startswith(pattern) and sub not in discovered_services:
+                            discovered_services.add(sub)
+                            
+                            # Create display name with actual service name
+                            display_name = f"{display_base} [{sub}]"
+                            
+                            frame = ctk.CTkFrame(scroll, fg_color="#112233", corner_radius=8)
+                            frame.pack(fill="x", padx=5, pady=3)
+                            
+                            var = tk.BooleanVar()
+                            service_vars.append(var)
+                            service_items.append((sub, display_name))
+                            
+                            var.trace('w', lambda *args: update_selection_count())
+                            
+                            cb = ctk.CTkCheckBox(
+                                frame,
+                                text=f"🔍 {display_name}",
+                                variable=var,
+                                font=ctk.CTkFont(family="Segoe UI", size=12, weight="bold"),
+                                text_color="#88aaff",
+                                fg_color="#00aaff",
+                                hover_color="#0077cc",
+                                checkmark_color="white"
+                            )
+                            cb.pack(side="left", padx=(10, 5), pady=8)
+                            
+                            # Add note that this is a discovered service
+                            desc_text = f"{description_base} (DISCOVERED SERVICE - specific to your system)"
+                            
+                            desc_label = ctk.CTkLabel(
+                                frame,
+                                text=desc_text,
+                                font=ctk.CTkFont(family="Segoe UI", size=10),
+                                text_color="#88aacc",
+                                wraplength=630,
+                                justify="left"
+                            )
+                            desc_label.pack(side="left", padx=(5, 10), pady=8, fill="x", expand=True)
+                            
                     i += 1
                 except OSError:
                     break
             winreg.CloseKey(base_key)
+            
+            if discovered_services:
+                # Add a separator label
+                sep_frame = ctk.CTkFrame(scroll, fg_color="#1a2540", height=2)
+                sep_frame.pack(fill="x", padx=10, pady=10)
+                
+                sep_label = ctk.CTkLabel(
+                    scroll,
+                    text="📌 Discovered Dynamic Services (unique to your system)",
+                    font=ctk.CTkFont(family="Segoe UI", size=12, weight="bold"),
+                    text_color="#ffaa44"
+                )
+                sep_label.pack(pady=(5, 5))
+                
         except Exception as e:
-            print(f"[ERROR] Dynamic services: {e}")
+            print(f"[ERROR] Dynamic services discovery: {e}")
+        
+        # Bottom buttons
+        bottom_frame = ctk.CTkFrame(service_window, fg_color="transparent")
+        bottom_frame.grid(row=3, column=0, sticky="ew", padx=10, pady=(0, 10))
+        
+        def apply_selected_services():
+            selected_services = []
+            selected_names = []
+            for i, var in enumerate(service_vars):
+                if var.get():
+                    service_name, display_name = service_items[i]
+                    selected_services.append(service_name)
+                    selected_names.append(display_name)
+            
+            if not selected_services:
+                messagebox.showinfo("No Selection", "Please select at least one service to disable.")
+                return
+            
+            confirm_msg = f"Are you sure you want to disable {len(selected_services)} service(s)?\n\n"
+            confirm_msg += "Selected services:\n" + "\n".join(f"• {name}" for name in selected_names[:15])
+            if len(selected_services) > 15:
+                confirm_msg += f"\n... and {len(selected_services) - 15} more"
+            
+            if not messagebox.askyesno("Confirm", confirm_msg):
+                return
+            
+            service_window.destroy()
+            self.apply_selected_services(selected_services)
+        
+        ctk.CTkButton(
+            bottom_frame,
+            text="✅ Apply Selected Services",
+            font=ctk.CTkFont(size=13, weight="bold"),
+            fg_color="#00aaff",
+            hover_color="#0077cc",
+            height=40,
+            command=apply_selected_services
+        ).pack(fill="x", pady=5)
+        
+        ctk.CTkButton(
+            bottom_frame,
+            text="Cancel",
+            font=ctk.CTkFont(size=12),
+            fg_color="#445566",
+            hover_color="#334455",
+            height=35,
+            command=service_window.destroy
+        ).pack(fill="x", pady=3)
 
-        self.show_result_window("Disable Services", success, failed)
 
+    def apply_selected_services(self, selected_services):
+        """Apply service disabling for selected services only"""
+        base = r"SYSTEM\CurrentControlSet\Services"
+        success, failed = [], []
+        
+        # Create progress window
+        progress_win = ctk.CTkToplevel(self.root)
+        progress_win.title("Disabling Services")
+        progress_win.geometry("400x150")
+        progress_win.attributes("-topmost", True)
+        progress_win.grab_set()
+        
+        label_status = ctk.CTkLabel(progress_win, text="Disabling services...", font=("Segoe UI", 12))
+        label_status.pack(pady=20)
+        
+        progress_bar = ctk.CTkProgressBar(progress_win, width=300)
+        progress_bar.pack(pady=10)
+        progress_bar.set(0)
+        
+        total = len(selected_services)
+        
+        for index, service in enumerate(selected_services):
+            progress_bar.set((index + 1) / total)
+            label_status.configure(text=f"Disabling: {service}")
+            progress_win.update()
+            
+            try:
+                key = winreg.CreateKeyEx(
+                    winreg.HKEY_LOCAL_MACHINE,
+                    f"{base}\\{service}",
+                    0, winreg.KEY_SET_VALUE
+                )
+                winreg.SetValueEx(key, "Start", 0, winreg.REG_DWORD, 4)  # 4 = Disabled
+                winreg.CloseKey(key)
+                success.append(service)
+            except Exception as e:
+                failed.append(f"{service} ({str(e)[:50]})")
+        
+        progress_win.destroy()
+        
+        # Show results
+        result_msg = f"✅ Services Disabled: {len(success)}\n"
+        if success:
+            result_msg += "\n" + "\n".join(f"  • {s}" for s in success[:20])
+            if len(success) > 20:
+                result_msg += f"\n  ... and {len(success) - 20} more"
+        
+        if failed:
+            result_msg += f"\n\n❌ Failed ({len(failed)}):\n" + "\n".join(f"  • {f}" for f in failed)
+        
+        messagebox.showinfo("Service Configuration Complete", result_msg)
 
 
     def disable_win10_services(self):
