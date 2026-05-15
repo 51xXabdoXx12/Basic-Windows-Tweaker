@@ -986,8 +986,7 @@ class WindowsOptimizer:
 
 
     def disable_services(self):
-        """Open service selection dialog with descriptions"""
-        # Create selection window
+
         service_window = ctk.CTkToplevel(self.root)
         service_window.title("Select Services to Disable")
         service_window.geometry("950x750")
@@ -995,12 +994,10 @@ class WindowsOptimizer:
         service_window.configure(fg_color="#0d1220")
         service_window.grab_set()
         
-        # Make window resizable
         service_window.grid_rowconfigure(0, weight=0)
         service_window.grid_rowconfigure(1, weight=1)
         service_window.grid_columnconfigure(0, weight=1)
         
-        # Header
         header = ctk.CTkFrame(service_window, fg_color="#111827", corner_radius=10)
         header.grid(row=0, column=0, sticky="ew", padx=10, pady=(10, 5))
         
@@ -1011,7 +1008,6 @@ class WindowsOptimizer:
             text_color="#00aaff"
         ).pack(side="left", padx=15, pady=10)
         
-        # Select/Deselect All buttons
         btn_frame = ctk.CTkFrame(header, fg_color="transparent")
         btn_frame.pack(side="right", padx=10)
         
@@ -1037,11 +1033,9 @@ class WindowsOptimizer:
             command=deselect_all
         ).pack(side="left", padx=3)
         
-        # Selection count label
         count_label = ctk.CTkLabel(header, text="Selected: 0 services", font=ctk.CTkFont(size=12), text_color="#88aaff")
         count_label.pack(side="right", padx=15)
         
-        # Warning label
         warning_frame = ctk.CTkFrame(service_window, fg_color="#331100", corner_radius=8)
         warning_frame.grid(row=2, column=0, sticky="ew", padx=10, pady=(5, 5))
         
@@ -1053,11 +1047,9 @@ class WindowsOptimizer:
             wraplength=850
         ).pack(padx=10, pady=6)
         
-        # Scrollable area for services
         scroll = ctk.CTkScrollableFrame(service_window, fg_color="transparent", scrollbar_button_color="#1a2540")
         scroll.grid(row=1, column=0, sticky="nsew", padx=10, pady=(5, 10))
         
-        # ===== STATIC SERVICES LIST (always shown) =====
         static_services = [
             # Service Name, Display Name, Description
             ("BTAGService", "Bluetooth Audio Gateway Service", "Manages Bluetooth audio devices. DISABLE if you don't use Bluetooth headphones/speakers."),
@@ -1136,7 +1128,6 @@ class WindowsOptimizer:
             ("SNMPTRAP", "SNMP Trap", "Network monitoring. DISABLE if not managing network."),
             ("RmSvc", "Radio Management Service", "Manages radio on/off. DISABLE if no airplane mode need."),
             
-            # ===== HYPER-V SERVICES (continued) =====
             ("vmickvpexchange", "Hyper-V Data Exchange Service", "Shares data between host and VMs. DISABLE if not using Hyper-V."),
             ("vmicguestinterface", "Hyper-V Guest Service Interface", "VM communication service. DISABLE if not using Hyper-V."),
             ("vmicshutdown", "Hyper-V Shutdown Service", "Allows VMs to shutdown host. DISABLE if not using Hyper-V."),
@@ -1148,14 +1139,12 @@ class WindowsOptimizer:
         ]
         
         service_vars = []
-        service_items = []  # Store (service_name, display_name)
+        service_items = []  
         
-        # Function to update selection count
         def update_selection_count():
             selected = sum(1 for var in service_vars if var.get())
             count_label.configure(text=f"Selected: {selected} services")
         
-        # ===== ADD STATIC SERVICES =====
         for service_name, display_name, description in static_services:
             frame = ctk.CTkFrame(scroll, fg_color="#111827", corner_radius=8)
             frame.pack(fill="x", padx=5, pady=3)
@@ -1188,7 +1177,6 @@ class WindowsOptimizer:
             )
             desc_label.pack(side="left", padx=(5, 10), pady=8, fill="x", expand=True)
         
-        # ===== DISCOVER AND ADD DYNAMIC SERVICES =====
         dynamic_service_patterns = [
             ("MessagingService", "Messaging Service", "Handles SMS and chat messaging. DISABLE if you don't use Windows messaging apps."),
             ("OneSyncSvc", "Sync Host Service", "Synchronizes mail, contacts, and calendar. DISABLE if not using built-in mail/calendar apps."),
@@ -1270,7 +1258,6 @@ class WindowsOptimizer:
         except Exception as e:
             print(f"[ERROR] Dynamic services discovery: {e}")
         
-        # Bottom buttons
         bottom_frame = ctk.CTkFrame(service_window, fg_color="transparent")
         bottom_frame.grid(row=3, column=0, sticky="ew", padx=10, pady=(0, 10))
         
@@ -1324,7 +1311,6 @@ class WindowsOptimizer:
         base = r"SYSTEM\CurrentControlSet\Services"
         success, failed = [], []
         
-        # Create progress window
         progress_win = ctk.CTkToplevel(self.root)
         progress_win.title("Disabling Services")
         progress_win.geometry("400x150")
@@ -1359,7 +1345,6 @@ class WindowsOptimizer:
         
         progress_win.destroy()
         
-        # Show results
         result_msg = f"✅ Services Disabled: {len(success)}\n"
         if success:
             result_msg += "\n" + "\n".join(f"  • {s}" for s in success[:20])
@@ -1872,96 +1857,38 @@ class WindowsOptimizer:
     #RES
 
     def restore_multimedia_defaults(self):
+        """Restore ONLY the settings that your gaming tweaks change"""
         try:
             base_path = r"SOFTWARE\Microsoft\Windows NT\CurrentVersion\Multimedia\SystemProfile"
-
-            # ===== SystemProfile =====
             key = winreg.CreateKeyEx(winreg.HKEY_LOCAL_MACHINE, base_path, 0, winreg.KEY_SET_VALUE)
-            winreg.SetValueEx(key, "SchedulerTimerResolution", 0, winreg.REG_DWORD, 0x00002710)   # 10000
-            winreg.SetValueEx(key, "NoLazyMode",               0, winreg.REG_DWORD, 0x00000000)
-            winreg.SetValueEx(key, "NetworkThrottlingIndex", 0, winreg.REG_DWORD, 0x0000000a)   # 10 = default
-            winreg.SetValueEx(key, "LazyModeTimeout",           0, winreg.REG_DWORD, 0x000493e0)   # default
-            winreg.SetValueEx(key, "SchedulerPeriod",           0, winreg.REG_DWORD, 0x000f4240)
-            winreg.SetValueEx(key, "IdleDetectionCycles",       0, winreg.REG_DWORD, 0x00000005)   # 5 = default
-            winreg.SetValueEx(key, "SystemResponsiveness",      0, winreg.REG_DWORD, 0x00000014)   # 20 = default
+            winreg.SetValueEx(key, "NetworkThrottlingIndex", 0, winreg.REG_DWORD, 0x0000000a)   # 10 (already default, but keep)
+            winreg.SetValueEx(key, "SystemResponsiveness", 0, winreg.REG_DWORD, 0x00000014)     # 20 = Windows DEFAULT (changed from 10)
             winreg.CloseKey(key)
 
-            # ===== Tasks =====
-            for task in ["Audio", "Pro Audio", "Playback", "Games"]:
-                task_path = base_path + rf"\Tasks\{task}"
-                key = winreg.CreateKeyEx(winreg.HKEY_LOCAL_MACHINE, task_path, 0, winreg.KEY_SET_VALUE)
-                winreg.SetValueEx(key, "Priority",              0, winreg.REG_DWORD, 0x00000002)   # 2 = default
-                winreg.SetValueEx(key, "Scheduling Category",   0, winreg.REG_SZ,    "Medium")
-                winreg.SetValueEx(key, "SFIO Priority",         0, winreg.REG_SZ,    "Normal")
-                winreg.SetValueEx(key, "Background Only",       0, winreg.REG_SZ,    "True")
-                winreg.SetValueEx(key, "Clock Rate",            0, winreg.REG_DWORD, 0x00002710)
-                winreg.SetValueEx(key, "Priority When Yielded", 0, winreg.REG_DWORD, 0x00000008)
-                winreg.SetValueEx(key, "GPU Priority",          0, winreg.REG_DWORD, 0x00000002)   # 2 = default
-                winreg.CloseKey(key)
-
-            # ===== Kernel =====
-            kernel_path = r"SYSTEM\CurrentControlSet\Control\Session Manager\kernel"
-            key = winreg.CreateKeyEx(winreg.HKEY_LOCAL_MACHINE, kernel_path, 0, winreg.KEY_SET_VALUE)
-            winreg.SetValueEx(key, "SerializeTimerExpiration",      0, winreg.REG_DWORD, 0x00000000)
-            winreg.SetValueEx(key, "GlobalTimerResolutionRequests", 0, winreg.REG_DWORD, 0x00000000)
-            winreg.SetValueEx(key, "DpcWatchdogProfileOffset",      0, winreg.REG_DWORD, 0x00000000)
-            winreg.CloseKey(key)
-
-            # ===== Memory Manager =====
             mem_path = r"SYSTEM\CurrentControlSet\Control\Session Manager\Memory Management"
             key = winreg.CreateKeyEx(winreg.HKEY_LOCAL_MACHINE, mem_path, 0, winreg.KEY_SET_VALUE)
-            winreg.SetValueEx(key, "LargeSystemCache",       0, winreg.REG_DWORD, 0x00000000)
-            winreg.SetValueEx(key, "DisablePagingExecutive", 0, winreg.REG_DWORD, 0x00000000)  # default = 0
-            winreg.SetValueEx(key, "SecondLevelDataCache",   0, winreg.REG_DWORD, 0x00000100)  # 256 = default
-            winreg.SetValueEx(key, "ThirdLevelDataCache",    0, winreg.REG_DWORD, 0x00000000)  # 0 = default
+            winreg.SetValueEx(key, "LargeSystemCache", 0, winreg.REG_DWORD, 0x00000000)         # 0 = default
+            winreg.SetValueEx(key, "DisablePagingExecutive", 0, winreg.REG_DWORD, 0x00000000)   # 0 = Windows DEFAULT (changed from 1)
             winreg.CloseKey(key)
 
-            # ===== Priority Control =====
-            priority_path = r"SYSTEM\CurrentControlSet\Control\PriorityControl"
-            key = winreg.CreateKeyEx(winreg.HKEY_LOCAL_MACHINE, priority_path, 0, winreg.KEY_SET_VALUE)
-            winreg.SetValueEx(key, "Win32PrioritySeparation", 0, winreg.REG_DWORD, 0x00000002)  # 2 = default
-            winreg.CloseKey(key)
-
-            # ===== GPU Scheduling =====
-            graphics_path = r"SYSTEM\CurrentControlSet\Control\GraphicsDrivers"
-            key = winreg.CreateKeyEx(winreg.HKEY_LOCAL_MACHINE, graphics_path, 0, winreg.KEY_SET_VALUE)
-            winreg.SetValueEx(key, "HwSchMode",               0, winreg.REG_DWORD, 0x00000002)  # 2 = default on Win11
-            winreg.SetValueEx(key, "PlatformSupportMiracast",  0, winreg.REG_DWORD, 0x00000001)  # 1 = enabled default
-            winreg.CloseKey(key)
-
-            # ===== Game Mode =====
             game_path = r"SOFTWARE\Microsoft\GameBar"
             key = winreg.CreateKeyEx(winreg.HKEY_CURRENT_USER, game_path, 0, winreg.KEY_SET_VALUE)
-            winreg.SetValueEx(key, "AllowAutoGameMode",   0, winreg.REG_DWORD, 0x00000001)
-            winreg.SetValueEx(key, "AutoGameModeEnabled", 0, winreg.REG_DWORD, 0x00000001)
+            winreg.SetValueEx(key, "AllowAutoGameMode", 0, winreg.REG_DWORD, 0x00000001)        # 1 = default
+            winreg.SetValueEx(key, "AutoGameModeEnabled", 0, winreg.REG_DWORD, 0x00000001)       # 1 = default
             winreg.CloseKey(key)
 
-            # ===== I/O System =====
             io_path = r"SYSTEM\CurrentControlSet\Control\Session Manager\I/O System"
             key = winreg.CreateKeyEx(winreg.HKEY_LOCAL_MACHINE, io_path, 0, winreg.KEY_SET_VALUE)
-            winreg.SetValueEx(key, "CountOperations", 0, winreg.REG_DWORD, 0x00000001)  # 1 = default
+            winreg.SetValueEx(key, "CountOperations", 0, winreg.REG_DWORD, 0x00000001)          # 1 = Windows DEFAULT (changed from 0)
             winreg.CloseKey(key)
 
-            # ===== Visual Effects =====
-            key = winreg.CreateKeyEx(winreg.HKEY_CURRENT_USER,
-                r"Software\Microsoft\Windows\CurrentVersion\Explorer\VisualEffects",
-                0, winreg.KEY_SET_VALUE)
-            winreg.SetValueEx(key, "VisualFXSetting", 0, winreg.REG_DWORD, 0x00000000)  # 0 = Let Windows decide
-            winreg.CloseKey(key)
-
-            # ===== Mouse =====
-            key = winreg.CreateKeyEx(winreg.HKEY_CURRENT_USER,
-                r"Control Panel\Mouse", 0, winreg.KEY_SET_VALUE)
-            winreg.SetValueEx(key, "MouseTrails",     0, winreg.REG_SZ, "0")
-            winreg.SetValueEx(key, "MouseSpeed",      0, winreg.REG_SZ, "1")   # 1 = Pointer Precision ON (default)
-            winreg.SetValueEx(key, "MouseThreshold1", 0, winreg.REG_SZ, "6")   # default
-            winreg.SetValueEx(key, "MouseThreshold2", 0, winreg.REG_SZ, "10")  # default
-            winreg.CloseKey(key)
-
-            messagebox.showinfo("✅ Restored", "Multimedia settings restored to Windows defaults!")
+            messagebox.showinfo("✅ Restored", "All gaming tweaks have been restored to Windows defaults!\n\n• SystemResponsiveness: 20 (default)\n• DisablePagingExecutive: 0 (default)\n• CountOperations: 1 (default)")
+            print("Restored to Windows defaults")
 
         except Exception as e:
-            messagebox.showerror("Error", f"Failed: {e}")
+            print("Error:", e)
+            messagebox.showerror("Error", f"Failed to restore: {e}")
+
     def enable_transparency_reg(self):
         self.set_reg(winreg.HKEY_CURRENT_USER, r"Software\Microsoft\Windows\CurrentVersion\Themes\Personalize", "EnableTransparency", 1, winreg.REG_DWORD)
 
