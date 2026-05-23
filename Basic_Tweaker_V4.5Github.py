@@ -983,6 +983,16 @@ class WindowsOptimizer:
         win.bind("<Return>", lambda e: win.destroy())
 
 
+
+    def _service_exists(self, service_name):
+        try:
+            key = winreg.OpenKey(winreg.HKEY_LOCAL_MACHINE,
+                                rf"SYSTEM\CurrentControlSet\Services\{service_name}")
+            winreg.CloseKey(key)
+            return True
+        except OSError:
+            return False
+
     def disable_services(self):
 
         service_window = ctk.CTkToplevel(self.root)
@@ -1142,7 +1152,7 @@ class WindowsOptimizer:
         def update_selection_count():
             selected = sum(1 for var in service_vars if var.get())
             count_label.configure(text=f"Selected: {selected} services")
-        
+        static_services = [(s, d, desc) for s, d, desc in static_services if self._service_exists(s)]
         for service_name, display_name, description in static_services:
             frame = ctk.CTkFrame(scroll, fg_color="#111827", corner_radius=8)
             frame.pack(fill="x", padx=5, pady=3)
@@ -1548,115 +1558,323 @@ class WindowsOptimizer:
         self.show_result_window("Enable Wifi", success, failed)
 
     def restore_services(self):
-        services = [
-            ("BTAGService",         3, "Bluetooth Audio Gateway"),
-            ("bthserv",             3, "Bluetooth Support Service"),
-            ("lfsvc",               3, "Geolocation Service"),
-            ("DiagTrack",           2, "Connected User Experiences & Telemetry"),
-            ("HvHost",              3, "Hyper-V Host"),
-            ("vmickvpexchange",     3, "Hyper-V Data Exchange"),
-            ("fhsvc",         3,"File History Service"),
-            ("vmicguestinterface",  3, "Hyper-V Guest Interface"),
-            ("vmicshutdown",        3, "Hyper-V Shutdown"),
-            ("vmicheartbeat",       3, "Hyper-V Heartbeat"),
-            ("vmicvmsession",       3, "Hyper-V VM Session"),
-            ("vmicrdv",             3, "Hyper-V Remote Desktop"),
-            ("vmictimesync",        3, "Hyper-V Time Sync"),
-            ("vmicvss",             3, "Hyper-V VSS"),
-            ("PhoneSvc",            3, "Phone Service"),
-            ("Spooler",             2, "Print Spooler"),
-            ("QWAVE",               3, "Quality Windows Audio Visual Experience"),
-            ("SysMain",             2, "SysMain (Superfetch)"),
-            ("WbioSrvc",            3, "Windows Biometric Service"),
-            ("wisvc",               3, "Windows Insider Service"),
-            ("WMPNetworkSvc",       3, "Windows Media Player Network Sharing"),
-            ("icssvc",              3, "Internet Connection Sharing"),
-            ("SharedAccess",        3, "Internet Connection Sharing (ICS)"),
-            ("WerSvc",              3, "Windows Error Reporting Service"),
-            ("PcaSvc",              2, "Program Compatibility Assistant"),
-            ("wercplsupport",       3, "Problem Reports Control Panel"),
-            ("MapsBroker",          2, "Downloaded Maps Manager"),
-            ("RetailDemoService",   4, "Retail Demo Service"),
-            ("dmwappushservice",    3, "Device Management WAP Push"),
-            ("MessagingService",    3, "Messaging Service"),
-            ("OneSyncSvc",          2, "Sync Host Service"),
-            ("LanmanServer",        3, "Server (File Sharing)"),
-            ("LanmanWorkstation",   2, "Workstation (Network Files)"),
-            ("SessionEnv",          3, "Remote Desktop Configuration"),
-            ("TermService",         3, "Remote Desktop Services"),
-            ("UmRdpService",        3, "Remote Desktop Services UserMode"),
-            ("WiaRpc",              3, "Still Image Acquisition"),
-            ("SEMgrSvc",            3, "Payments and NFC"),
-            ("ScDeviceEnum",        3, "Smart Card Device Enumeration"),
-            ("SCardSvr",            3, "Smart Card"),
-            ("SCPolicySvc",         3, "Smart Card Removal Policy"),
-            ("CloudBackupRestoreSvc", 3, "Cloud Backup and Restore"),
-            ("FileSyncHelper",      3, "File Sync Helper"),
-            ("OneDrive",            3, "OneDrive Sync"),
-            ("MicrosoftEdgeElevationService", 3, "Microsoft Edge Elevation"),
-            ("edgeupdate",          2, "Microsoft Edge Update"),
-            ("edgeupdatem",         3, "Microsoft Edge Update (m)"),
-            ("PrintNotify",         3, "Printer Extensions and Notifications"),
-            ("PrintWorkflowUserSvc",3, "Print Workflow Service"),
-            ("VaultSvc",            3, "Credential Manager"),
-            ("WpcMonSvc",           3, "Parental Controls"),
-            ("InventorySvc",        3, "Windows Inventory Service"),
-            ("DsSvc",               3, "Data Sharing Service"),
-            ("BluetoothUserService",3, "Bluetooth User Support Service"),
-            ("BthAvctpSvc",         3, "AVCTP Service"),
-            ("BthHFSrv",            3, "Bluetooth Handsfree Service"),
-            ("BthRcManSvc",         3, "Bluetooth Remote Control Manager"),
-            ("WManSvc",             3, "Windows Mobile Hotspot Service"),
-            ("DusmSvc",             2, "Data Usage Service"),
-            ("diagnosticshub.standardcollector.service", 3, "Diagnostics Hub Standard Collector"),
-            ("NfcService",          3, "NFC Service"),
-            ("TapiSrv",             3, "Telephony"),
-            ("WinRM",               3, "Windows Remote Management"),
-            ("FDResPub",            3, "Function Discovery Resource Pub"),
-            ("fdPHost",             3, "Function Discovery Provider"),
-            ("diagsvc",             3, "Diagnostic Execution Service"),
-            ("lltdsvc",             3, "Link-Layer Topology Discovery"),
-            ("SSDPSRV",             3, "SSDP Discovery"),
-            ("upnphost",            3, "UPnP Device Host"),
-            ("p2psvc",              3, "Peer Networking Grouping"),
-            ("p2pimsvc",            3, "Peer Networking Identity Manager"),
-            ("PNRPsvc",             3, "Peer Name Resolution Protocol"),
-            ("PNRPAutoReg",         3, "PNRP Machine Name Publication"),
-            ("Wecsvc",              3, "Windows Event Collector"),
-            ("MSiSCSI",             3, "Microsoft iSCSI Initiator"),
-            ("NetTcpPortSharing",   4, "Net.Tcp Port Sharing"),
-            ("MSDTC",               3, "Distributed Transaction Coordinator"),
-            ("RemoteRegistry",      4, "Remote Registry"),
-            ("WalletService",       3, "Wallet Service"),
-            ("embeddedmode",        4, "Embedded Mode"),
-            ("EntAppSvc",           3, "Enterprise App Management"),
-            ("stisvc",              3, "Windows Image Acquisition"),
-            ("MixedRealityOpenXRSvc",3,"Windows Mixed Reality OpenXR"),
-            ("UevAgentService",     4, "User Experience Virtualization"),
-            ("lmhosts",             3, "TCP/IP NetBIOS Helper"),
-            ("SNMPTRAP",            3, "SNMP Trap"),
-            ("RmSvc",               3, "Radio And Airplane mode service"),
+        """Show only services that are currently disabled on this PC, let user pick which to re-enable"""
+
+        # ── Full known-services list with their default Start values ────
+        # (service_key, display_name, description, default_start_value)
+        # 2=Automatic  3=Manual  4=Disabled
+        ALL_KNOWN_SERVICES = [
+            ("BTAGService",          "Bluetooth Audio Gateway",                    "Bluetooth audio devices. Restore if you use BT headphones/speakers.",       3),
+            ("bthserv",              "Bluetooth Support Service",                  "Core Bluetooth. Restore if you use Bluetooth.",                              3),
+            ("lfsvc",                "Geolocation Service",                        "Location tracking.",                                                         3),
+            ("DiagTrack",            "Connected User Experiences & Telemetry",     "Usage data collection by Microsoft.",                                        2),
+            ("fhsvc",                "File History Service",                       "Automatic file backups.",                                                    3),
+            ("diagsvc",              "Diagnostic Execution Service",               "Runs diagnostic tools.",                                                     3),
+            ("HvHost",               "Hyper-V Host",                              "Core Hyper-V virtualisation.",                                               3),
+            ("vmickvpexchange",      "Hyper-V Data Exchange",                      "Host↔VM data sharing.",                                                      3),
+            ("vmicguestinterface",   "Hyper-V Guest Interface",                    "VM communication.",                                                          3),
+            ("vmicshutdown",         "Hyper-V Shutdown",                           "Allows VMs to shutdown host.",                                               3),
+            ("vmicheartbeat",        "Hyper-V Heartbeat",                          "Monitors if VMs are running.",                                               3),
+            ("vmicvmsession",        "Hyper-V VM Session",                         "Manages VM sessions.",                                                       3),
+            ("vmicrdv",              "Hyper-V Remote Desktop Virtualization",      "Remote access to VMs.",                                                      3),
+            ("vmictimesync",         "Hyper-V Time Synchronization",               "Syncs time between host and VMs.",                                           3),
+            ("vmicvss",              "Hyper-V Volume Shadow Copy",                 "VM backups.",                                                                3),
+            ("PhoneSvc",             "Phone Service",                              "Your Phone app integration.",                                                3),
+            ("Spooler",              "Print Spooler",                              "Manages print jobs. Restore if you print.",                                  2),
+            ("QWAVE",                "Quality Windows Audio Video Experience",     "Optimises audio/video over networks.",                                       3),
+            ("SysMain",              "SysMain (Superfetch)",                       "Preloads apps into RAM.",                                                    2),
+            ("WbioSrvc",             "Windows Biometric Service",                  "Fingerprint/face recognition.",                                              3),
+            ("wisvc",                "Windows Insider Service",                    "Insider Preview builds.",                                                    3),
+            ("WMPNetworkSvc",        "Windows Media Player Network Sharing",       "Shares media libraries over network.",                                       3),
+            ("icssvc",               "Internet Connection Sharing",                "Shares internet with other devices.",                                        3),
+            ("SharedAccess",         "Internet Connection Sharing (ICS)",          "Same as above.",                                                             3),
+            ("WerSvc",               "Windows Error Reporting Service",            "Sends crash reports to Microsoft.",                                          3),
+            ("PcaSvc",               "Program Compatibility Assistant",            "Checks app compatibility.",                                                  2),
+            ("wercplsupport",        "Problem Reports Control Panel",              "Manages problem reports.",                                                   3),
+            ("MapsBroker",           "Downloaded Maps Manager",                    "Downloads offline maps.",                                                    2),
+            ("dmwappushservice",     "Device Management WAP Push",                 "Push notifications for device management.",                                  3),
+            ("MessagingService",     "Messaging Service",                          "SMS/chat messaging.",                                                        3),
+            ("OneSyncSvc",           "Sync Host Service",                          "Synchronises mail, contacts, calendar.",                                     2),
+            ("LanmanServer",         "Server (File Sharing)",                      "File/printer sharing on network.",                                           3),
+            ("LanmanWorkstation",    "Workstation (Network Files)",                "Access network files/drives.",                                               2),
+            ("SessionEnv",           "Remote Desktop Configuration",               "RDP configuration.",                                                         3),
+            ("TermService",          "Remote Desktop Services",                    "Core Remote Desktop service.",                                               3),
+            ("UmRdpService",         "Remote Desktop Services UserMode",           "RDP user session management.",                                               3),
+            ("RpcLocator",           "Remote Procedure Call Locator",              "Legacy RPC.",                                                                3),
+            ("WiaRpc",               "Still Image Acquisition Events",             "Scanner/camera support.",                                                    3),
+            ("SEMgrSvc",             "Payments and NFC",                           "NFC payments.",                                                              3),
+            ("ScDeviceEnum",         "Smart Card Device Enumeration",              "Finds smart card readers.",                                                  3),
+            ("SCardSvr",             "Smart Card",                                 "Manages smart card access.",                                                 3),
+            ("SCPolicySvc",          "Smart Card Removal Policy",                  "Locks PC when card removed.",                                                3),
+            ("CloudBackupRestoreSvc","Cloud Backup and Restore",                   "Windows cloud backup.",                                                      3),
+            ("FileSyncHelper",       "File Sync Helper",                           "Helps OneDrive sync files.",                                                 3),
+            ("OneDrive",             "OneDrive Sync",                              "OneDrive cloud sync.",                                                       3),
+            ("MicrosoftEdgeElevationService", "Microsoft Edge Elevation",         "Allows Edge to update itself.",                                              3),
+            ("edgeupdate",           "Microsoft Edge Update",                      "Automatic Edge updates.",                                                    2),
+            ("edgeupdatem",          "Microsoft Edge Update (m)",                  "Secondary Edge updater.",                                                    3),
+            ("PrintNotify",          "Printer Extensions and Notifications",       "Printer popups and alerts.",                                                 3),
+            ("PrintWorkflowUserSvc", "Print Workflow Service",                     "Manages modern print dialogs.",                                              3),
+            ("VaultSvc",             "Credential Manager",                         "Saves passwords/credentials.",                                               3),
+            ("WpcMonSvc",            "Parental Controls",                          "Family safety and screen time.",                                             3),
+            ("InventorySvc",         "Windows Inventory Service",                  "App inventory collection.",                                                  3),
+            ("DsSvc",                "Data Sharing Service",                       "Data sharing between apps.",                                                 3),
+            ("RetailDemoService",    "Retail Demo Service",                        "Demo mode for retail.",                                                      4),
+            ("WpnService",           "Windows Push Notifications",                 "Push notifications system-wide.",                                            2),
+            ("BluetoothUserService", "Bluetooth User Support Service",             "Bluetooth user interactions.",                                               3),
+            ("BthAvctpSvc",          "AVCTP Service",                              "Audio/video control for Bluetooth.",                                         3),
+            ("BthHFSrv",             "Bluetooth Handsfree Service",                "Handsfree calling profile.",                                                 3),
+            ("BthRcManSvc",          "Bluetooth Remote Control Manager",           "Manages Bluetooth remotes.",                                                 3),
+            ("WManSvc",              "Windows Mobile Hotspot Service",             "Creates mobile hotspot.",                                                    3),
+            ("TrkWks",               "Distributed Link Tracking Client",           "Tracks moved/renamed files on network.",                                     2),
+            ("DusmSvc",              "Data Usage Service",                         "Tracks network data usage.",                                                 2),
+            ("diagnosticshub.standardcollector.service", "Diagnostics Hub Standard Collector", "Diagnostic data collection.",                                   3),
+            ("NfcService",           "NFC Service",                                "Near Field Communication.",                                                  3),
+            ("TapiSrv",              "Telephony",                                  "Phone/modem support.",                                                       3),
+            ("lltdsvc",              "Link-Layer Topology Discovery",              "Maps network topology.",                                                     3),
+            ("SSDPSRV",              "SSDP Discovery",                             "Finds UPnP devices on network.",                                             3),
+            ("upnphost",             "UPnP Device Host",                           "Hosts UPnP devices.",                                                        3),
+            ("p2psvc",               "Peer Networking Grouping",                   "P2P collaboration (legacy HomeGroup).",                                      3),
+            ("p2pimsvc",             "Peer Networking Identity Manager",           "P2P identity management.",                                                   3),
+            ("PNRPsvc",              "Peer Name Resolution Protocol",              "P2P name resolution.",                                                       3),
+            ("PNRPAutoReg",          "PNRP Machine Name Publication",              "Broadcasts PC name for P2P.",                                                3),
+            ("Wecsvc",               "Windows Event Collector",                    "Collects events from remote PCs.",                                           3),
+            ("MSiSCSI",              "Microsoft iSCSI Initiator",                  "Connects to iSCSI storage networks.",                                        3),
+            ("NetTcpPortSharing",    "Net.Tcp Port Sharing",                       "Shares TCP ports for WCF apps.",                                             4),
+            ("MSDTC",                "Distributed Transaction Coordinator",        "Database transactions across systems.",                                      3),
+            ("RemoteRegistry",       "Remote Registry",                            "⚠️ Allows remote registry access. Security risk.",                           4),
+            ("WalletService",        "Wallet Service",                             "Digital wallet management.",                                                 3),
+            ("embeddedmode",         "Embedded Mode",                              "For embedded/IoT devices.",                                                  4),
+            ("EntAppSvc",            "Enterprise App Management",                  "Business/MDM app management.",                                               3),
+            ("stisvc",               "Windows Image Acquisition (WIA)",            "Scanner/camera support.",                                                    3),
+            ("MixedRealityOpenXRSvc","Windows Mixed Reality OpenXR",              "VR headset support.",                                                        3),
+            ("UevAgentService",      "User Experience Virtualization",             "Roams settings between PCs.",                                                4),
+            ("lmhosts",              "TCP/IP NetBIOS Helper",                      "Legacy NetBIOS name resolution.",                                            3),
+            ("SNMPTRAP",             "SNMP Trap",                                  "Network monitoring traps.",                                                  3),
+            ("RmSvc",                "Radio Management Service",                   "Manages airplane mode.",                                                     3),
+            ("WinRM",                "Windows Remote Management",                  "Remote PowerShell execution.",                                               3),
+            ("FDResPub",             "Function Discovery Resource Publication",    "Publishes PC to network.",                                                   3),
+            ("fdPHost",              "Function Discovery Provider Host",           "Finds network devices.",                                                     3),
+            ("WbioSrvc",             "Windows Biometric Service",                  "Fingerprint/face login.",                                                    3),
+            ("XblAuthManager",       "Xbox Live Auth Manager",                     "Xbox Live authentication.",                                                  3),
+            ("XblGameSave",          "Xbox Live Game Save",                        "Xbox cloud game saves.",                                                     3),
+            ("XboxGipSvc",           "Xbox Accessory Management",                  "Xbox controllers/accessories.",                                              3),
+            ("XboxNetApiSvc",        "Xbox Live Networking",                       "Xbox Live network features.",                                                3),
+            ("GamingServices",       "Gaming Services",                            "Microsoft Gaming Services.",                                                 3),
         ]
 
+        # ── Scan: keep only services that exist AND are currently disabled ──
         base = r"SYSTEM\CurrentControlSet\Services"
-        success, failed = [], []
+        disabled_services = []
 
-        for service, default_val, desc in services:
+        for svc_key, display_name, description, default_val in ALL_KNOWN_SERVICES:
             try:
-                key = winreg.CreateKeyEx(
+                key = winreg.OpenKey(
                     winreg.HKEY_LOCAL_MACHINE,
-                    f"{base}\\{service}",
-                    0, winreg.KEY_SET_VALUE
+                    f"{base}\\{svc_key}",
+                    0, winreg.KEY_READ
                 )
-                winreg.SetValueEx(key, "Start", 0, winreg.REG_DWORD, default_val)
+                current_start, _ = winreg.QueryValueEx(key, "Start")
                 winreg.CloseKey(key)
-                success.append(desc)
-                print(f"[OK] Restored: {desc}")
-            except Exception as e:
-                failed.append(desc)
-                print(f"[ERROR] {desc}: {e}")
+                if current_start == 4:  # 4 = Disabled
+                    disabled_services.append((svc_key, display_name, description, default_val))
+            except Exception:
+                pass  # Service doesn't exist on this machine — skip
 
-        self.show_result_window("Restore Services", success, failed)
+        # ── Build the window ────────────────────────────────────────────
+        service_window = ctk.CTkToplevel(self.root)
+        service_window.title("Select Services to Re-Enable")
+        service_window.geometry("950x750")
+        service_window.minsize(800, 600)
+        service_window.configure(fg_color="#0d1220")
+        service_window.grab_set()
+
+        service_window.grid_rowconfigure(0, weight=0)
+        service_window.grid_rowconfigure(1, weight=1)
+        service_window.grid_rowconfigure(2, weight=0)
+        service_window.grid_rowconfigure(3, weight=0)
+        service_window.grid_columnconfigure(0, weight=1)
+
+        # Header
+        header = ctk.CTkFrame(service_window, fg_color="#111827", corner_radius=10)
+        header.grid(row=0, column=0, sticky="ew", padx=10, pady=(10, 5))
+
+        ctk.CTkLabel(
+            header,
+            text="🔄 Restore Services — Select Services to Re-Enable",
+            font=ctk.CTkFont(family="Segoe UI", size=18, weight="bold"),
+            text_color="#00cc88"
+        ).pack(side="left", padx=15, pady=10)
+
+        btn_frame = ctk.CTkFrame(header, fg_color="transparent")
+        btn_frame.pack(side="right", padx=10)
+
+        service_vars  = []
+        service_items = []
+
+        def update_selection_count():
+            selected = sum(1 for var in service_vars if var.get())
+            count_label.configure(text=f"Selected: {selected} services")
+
+        def select_all():
+            for var in service_vars:
+                var.set(True)
+            update_selection_count()
+
+        def deselect_all():
+            for var in service_vars:
+                var.set(False)
+            update_selection_count()
+
+        ctk.CTkButton(
+            btn_frame, text="Select All", width=90, height=30,
+            fg_color="#00cc88", hover_color="#009966",
+            command=select_all
+        ).pack(side="left", padx=3)
+
+        ctk.CTkButton(
+            btn_frame, text="Deselect All", width=90, height=30,
+            fg_color="#445566", hover_color="#334455",
+            command=deselect_all
+        ).pack(side="left", padx=3)
+
+        count_label = ctk.CTkLabel(
+            header, text="Selected: 0 services",
+            font=ctk.CTkFont(size=12), text_color="#88ffcc"
+        )
+        count_label.pack(side="right", padx=15)
+
+        # Info bar — how many disabled services found
+        info_frame = ctk.CTkFrame(service_window, fg_color="#0a2010", corner_radius=8)
+        info_frame.grid(row=2, column=0, sticky="ew", padx=10, pady=(5, 5))
+
+        if disabled_services:
+            info_text = f"✅ Found {len(disabled_services)} disabled service(s) on this PC — select which ones to restore."
+            info_color = "#44ff99"
+        else:
+            info_text = "✅ No disabled services found — nothing to restore."
+            info_color = "#aaaaaa"
+
+        ctk.CTkLabel(
+            info_frame,
+            text=info_text,
+            font=ctk.CTkFont(family="Segoe UI", size=11),
+            text_color=info_color,
+            wraplength=850
+        ).pack(padx=10, pady=6)
+
+        # Scrollable list
+        scroll = ctk.CTkScrollableFrame(
+            service_window, fg_color="transparent",
+            scrollbar_button_color="#1a2540"
+        )
+        scroll.grid(row=1, column=0, sticky="nsew", padx=10, pady=(5, 10))
+
+        if not disabled_services:
+            ctk.CTkLabel(
+                scroll,
+                text="🎉 All services are already at their default state.\nNothing to restore.",
+                font=ctk.CTkFont(family="Segoe UI", size=14),
+                text_color="#44cc88"
+            ).pack(pady=50)
+        else:
+            for svc_key, display_name, description, default_val in disabled_services:
+                frame = ctk.CTkFrame(scroll, fg_color="#111827", corner_radius=8)
+                frame.pack(fill="x", padx=5, pady=3)
+
+                var = tk.BooleanVar()
+                service_vars.append(var)
+                service_items.append((svc_key, display_name, default_val))
+
+                var.trace('w', lambda *args: update_selection_count())
+
+                cb = ctk.CTkCheckBox(
+                    frame,
+                    text=display_name,
+                    variable=var,
+                    font=ctk.CTkFont(family="Segoe UI", size=12, weight="bold"),
+                    text_color="#00cc88",
+                    fg_color="#00cc88",
+                    hover_color="#009966",
+                    checkmark_color="white"
+                )
+                cb.pack(side="left", padx=(10, 5), pady=8)
+
+                # Show what value it will be restored to
+                start_label_map = {2: "Automatic", 3: "Manual", 4: "Disabled"}
+                restore_to = start_label_map.get(default_val, str(default_val))
+
+                desc_label = ctk.CTkLabel(
+                    frame,
+                    text=f"{description}   →  Will be set to: {restore_to}",
+                    font=ctk.CTkFont(family="Segoe UI", size=10),
+                    text_color="#8899aa",
+                    wraplength=620,
+                    justify="left"
+                )
+                desc_label.pack(side="left", padx=(5, 10), pady=8, fill="x", expand=True)
+
+        # Bottom buttons
+        bottom_frame = ctk.CTkFrame(service_window, fg_color="transparent")
+        bottom_frame.grid(row=3, column=0, sticky="ew", padx=10, pady=(0, 10))
+
+        def apply_restore():
+            selected = [
+                (svc_key, display_name, default_val)
+                for i, (svc_key, display_name, default_val) in enumerate(service_items)
+                if service_vars[i].get()
+            ]
+
+            if not selected:
+                messagebox.showinfo("No Selection", "Please select at least one service to restore.")
+                return
+
+            confirm_msg = f"Restore {len(selected)} service(s) to their default state?\n\n"
+            confirm_msg += "\n".join(f"• {name}" for _, name, _ in selected[:15])
+            if len(selected) > 15:
+                confirm_msg += f"\n... and {len(selected) - 15} more"
+
+            if not messagebox.askyesno("Confirm Restore", confirm_msg):
+                return
+
+            service_window.destroy()
+
+            success, failed = [], []
+            for svc_key, display_name, default_val in selected:
+                try:
+                    key = winreg.CreateKeyEx(
+                        winreg.HKEY_LOCAL_MACHINE,
+                        f"{base}\\{svc_key}",
+                        0, winreg.KEY_SET_VALUE
+                    )
+                    winreg.SetValueEx(key, "Start", 0, winreg.REG_DWORD, default_val)
+                    winreg.CloseKey(key)
+                    success.append(display_name)
+                    print(f"[OK] Restored: {display_name}")
+                except Exception as e:
+                    failed.append(f"{display_name} ({str(e)[:50]})")
+                    print(f"[ERROR] {display_name}: {e}")
+
+            self.show_result_window("Restore Services", success, failed)
+
+        ctk.CTkButton(
+            bottom_frame,
+            text="✅ Restore Selected Services",
+            font=ctk.CTkFont(size=13, weight="bold"),
+            fg_color="#00cc88",
+            hover_color="#009966",
+            height=40,
+            command=apply_restore
+        ).pack(fill="x", pady=5)
+
+        ctk.CTkButton(
+            bottom_frame,
+            text="Cancel",
+            font=ctk.CTkFont(size=12),
+            fg_color="#445566",
+            hover_color="#334455",
+            height=35,
+            command=service_window.destroy
+        ).pack(fill="x", pady=3)
 
     
 
