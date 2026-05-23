@@ -42,7 +42,7 @@ class WindowsOptimizer:
         )
         style.layout('TNotebook', [('Notebook.client', {'sticky': 'nswe'})])
         if not self.is_admin():
-            ctk.CTkToplevel(self.root)  # force focus
+            ctk.CTkToplevel(self.root)
             messagebox.showwarning("Admin Required", "Please run as Administrator for all tweaks to work.")
 
         self.installed_packages = self.get_installed_packages()
@@ -229,10 +229,8 @@ class WindowsOptimizer:
             ).pack(pady=30)
 
     def refresh_system_tab(self):
-        # Clear the tab
         for child in self.tab_system.winfo_children():
             child.destroy()
-        # Re-build the content
         self.build_system_info_tab()
     def render_About_List(self):
             for widget in self.tab_About.winfo_children():
@@ -251,7 +249,7 @@ class WindowsOptimizer:
                 main_frame,
                 text="IMPORTANT NOTE",
                 font=ctk.CTkFont(family="Segoe UI", size=24, weight="bold"),
-                text_color="#00aaff" # نفس لون تطبيقك الأساسي
+                text_color="#00aaff" 
             ).pack(pady=10)
 
             note_text = "When U Disable Gaming Tweaks The Mouse\nAnd Animation Will Back To default"
@@ -291,7 +289,6 @@ class WindowsOptimizer:
         header_frame.pack(fill="x", padx=20, pady=(14, 0))
 
 
-        # Tab Control
 
         self.tabview = ctk.CTkTabview(
             self.root,
@@ -344,7 +341,6 @@ class WindowsOptimizer:
             tab.configure(fg_color="#0d1220")
 
 
-        # --- Bloatware Tab ---
         self.bloatware_vars = []
         self.bloatware_items = [
             ("Cortana", "Microsoft.549981C3F5F10"),
@@ -417,7 +413,6 @@ class WindowsOptimizer:
         self.render_bloatware_list()
 
 
-        # --- Tweaks Tab ---
         self.tweak_vars = []
         self.tweaks_list = [
             ("Disable Location Tracking", self.disable_location, (winreg.HKEY_LOCAL_MACHINE, r"SOFTWARE\Microsoft\Windows\CurrentVersion\CapabilityAccessManager\ConsentStore\location", "Value", "Deny")),
@@ -469,7 +464,6 @@ class WindowsOptimizer:
         
         self.render_restore_list()
         self.render_About_List()
-        # Apply Button
         ctk.CTkButton(
             self.root,
             text="⚡  Apply Tweaks",
@@ -482,7 +476,6 @@ class WindowsOptimizer:
             command=self.apply_changes
         ).pack(fill="x", padx=30, pady=(4, 16))
     def apply_changes(self):
-        # 1. جمع المهام المحددة
         tasks = []
         for var, package in self.bloatware_vars:
             if var.get(): tasks.append(("bloatware", package))
@@ -529,7 +522,6 @@ class WindowsOptimizer:
             label_percent.configure(text=f"{int(current_step * 100)}%")
             progress_win.update() 
 
-            # تنفيذ المهمة فعلياً
             try:
                 if task_type == "bloatware":
                     cmd = f"Get-AppxPackage *{task_data}* | Remove-AppxPackage"
@@ -699,7 +691,6 @@ class WindowsOptimizer:
                 if result.returncode == 0:
                     success.append(app)
                 else:
-                    # fallback: reinstall from store
                     cmd2 = f"Get-AppxPackage -allusers *{app}* | Foreach {{Add-AppxPackage -register \"$($_.InstallLocation)\\appxmanifest.xml\" -DisableDevelopmentMode}}"
                     subprocess.run(["powershell", "-Command", cmd2], capture_output=True)
                     success.append(app)
@@ -717,14 +708,14 @@ class WindowsOptimizer:
 
             key = winreg.CreateKeyEx(winreg.HKEY_LOCAL_MACHINE, base_path, 0, winreg.KEY_SET_VALUE)
             winreg.SetValueEx(key, "NetworkThrottlingIndex", 0, winreg.REG_DWORD, 0x0000000a)
-            winreg.SetValueEx(key, "SystemResponsiveness", 0, winreg.REG_DWORD, 0x0000000a)  # Keep 10 for gaming
+            winreg.SetValueEx(key, "SystemResponsiveness", 0, winreg.REG_DWORD, 0x0000000a)  
             winreg.CloseKey(key)
 
 
             mem_path = r"SYSTEM\CurrentControlSet\Control\Session Manager\Memory Management"
             key = winreg.CreateKeyEx(winreg.HKEY_LOCAL_MACHINE, mem_path, 0, winreg.KEY_SET_VALUE)
             winreg.SetValueEx(key, "LargeSystemCache", 0, winreg.REG_DWORD, 0x00000000)
-            winreg.SetValueEx(key, "DisablePagingExecutive", 0, winreg.REG_DWORD, 0x00000001)  # KEEP - good for performance
+            winreg.SetValueEx(key, "DisablePagingExecutive", 0, winreg.REG_DWORD, 0x00000001) 
             winreg.CloseKey(key)
 
 
@@ -752,18 +743,15 @@ class WindowsOptimizer:
 
     def add_context_menu_tools(self):
             try:
-                # ── Main Category: Basic Tweaks Option ───────────────────────
                 main_path = r"SOFTWARE\Classes\DesktopBackground\Shell\BasicTweaks"
                 main_key = winreg.CreateKeyEx(winreg.HKEY_LOCAL_MACHINE, main_path, 0, winreg.KEY_SET_VALUE)
                 winreg.SetValueEx(main_key, "MUIVerb", 0, winreg.REG_SZ, "🛠️ Basic Tweaks Option")
                 winreg.SetValueEx(main_key, "SubCommands", 0, winreg.REG_SZ, "")
-                winreg.SetValueEx(main_key, "Icon", 0, winreg.REG_SZ, "shell32.dll,238") # Tools icon
+                winreg.SetValueEx(main_key, "Icon", 0, winreg.REG_SZ, "shell32.dll,238") 
                 winreg.CloseKey(main_key)
 
-                # Define the sub-shell path where all items will live
                 sub_shell_path = main_path + r"\Shell"
 
-                # ── 1. Power Plan Sub-Menu ──────────────────────────────────
                 pp_path = sub_shell_path + r"\PowerPlan"
                 pp_key = winreg.CreateKeyEx(winreg.HKEY_LOCAL_MACHINE, pp_path, 0, winreg.KEY_SET_VALUE)
                 winreg.SetValueEx(pp_key, "MUIVerb", 0, winreg.REG_SZ, "⚡ Power Plan")
@@ -793,7 +781,6 @@ class WindowsOptimizer:
                     winreg.SetValueEx(p_cmd_key, "", 0, winreg.REG_SZ, cmd)
                     winreg.CloseKey(p_cmd_key)
 
-                # ── 2. Temp Files Cleaner ───────────────────────────────────
                 temp_path = sub_shell_path + r"\TempCleaner"
                 temp_key = winreg.CreateKeyEx(winreg.HKEY_LOCAL_MACHINE, temp_path, 0, winreg.KEY_SET_VALUE)
                 winreg.SetValueEx(temp_key, "MUIVerb", 0, winreg.REG_SZ, "🗑️ Clean Temp Files")
@@ -819,7 +806,6 @@ class WindowsOptimizer:
                 winreg.SetValueEx(temp_cmd_key, "", 0, winreg.REG_SZ, ps_script)
                 winreg.CloseKey(temp_cmd_key)
 
-                # ── 4. LowLatency Power Plan  ──────────
                 pl_result = subprocess.run(["powercfg", "/list"], capture_output=True, text=True)
                 plan_guid = None
                 for line in pl_result.stdout.splitlines():
@@ -1059,7 +1045,6 @@ class WindowsOptimizer:
         scroll.grid(row=1, column=0, sticky="nsew", padx=10, pady=(5, 10))
         
         static_services = [
-            # Service Name, Display Name, Description
             ("BTAGService", "Bluetooth Audio Gateway Service", "Manages Bluetooth audio devices. DISABLE if you don't use Bluetooth headphones/speakers."),
             ("bthserv", "Bluetooth Support Service", "Core Bluetooth functionality. DISABLE if you never use Bluetooth."),
             ("lfsvc", "Geolocation Service", "Tracks your physical location. DISABLE for privacy."),
@@ -1208,7 +1193,6 @@ class WindowsOptimizer:
                         if sub.startswith(pattern) and sub not in discovered_services:
                             discovered_services.add(sub)
                             
-                            # Create display name with actual service name
                             display_name = f"{display_base} [{sub}]"
                             
                             frame = ctk.CTkFrame(scroll, fg_color="#112233", corner_radius=8)
@@ -1232,7 +1216,6 @@ class WindowsOptimizer:
                             )
                             cb.pack(side="left", padx=(10, 5), pady=8)
                             
-                            # Add note that this is a discovered service
                             desc_text = f"{description_base} (DISCOVERED SERVICE - specific to your system)"
                             
                             desc_label = ctk.CTkLabel(
@@ -1251,7 +1234,6 @@ class WindowsOptimizer:
             winreg.CloseKey(base_key)
             
             if discovered_services:
-                # Add a separator label
                 sep_frame = ctk.CTkFrame(scroll, fg_color="#1a2540", height=2)
                 sep_frame.pack(fill="x", padx=10, pady=10)
                 
@@ -1315,7 +1297,6 @@ class WindowsOptimizer:
 
 
     def apply_selected_services(self, selected_services):
-        """Apply service disabling for selected services only"""
         base = r"SYSTEM\CurrentControlSet\Services"
         success, failed = [], []
         
@@ -1345,7 +1326,7 @@ class WindowsOptimizer:
                     f"{base}\\{service}",
                     0, winreg.KEY_SET_VALUE
                 )
-                winreg.SetValueEx(key, "Start", 0, winreg.REG_DWORD, 4)  # 4 = Disabled
+                winreg.SetValueEx(key, "Start", 0, winreg.REG_DWORD, 4)  
                 winreg.CloseKey(key)
                 success.append(service)
             except Exception as e:
@@ -1366,50 +1347,134 @@ class WindowsOptimizer:
 
 
     def disable_win10_services(self):
-        """تعطيل خدمات ويندوز 10 غير الضرورية عبر الريجستري"""
-        services = [
-        ("Fax", "Fax Service"),
-        ("DoSvc", "Delivery Optimization"),
-        ("wuauserv", "Windows Update Service"),
-        ("UsoSvc", "Update Orchestrator Service"),
-        ("bits", "Background Intelligent Transfer Service"),
-        ("waasmedic", "Windows Update Medic Service")
+
+        service_window = ctk.CTkToplevel(self.root)
+        service_window.title("Select Windows 10 Services to Disable")
+        service_window.geometry("950x750")
+        service_window.minsize(800, 600)
+        service_window.configure(fg_color="#0d1220")
+        service_window.grab_set()
+
+        service_window.grid_rowconfigure(0, weight=0)
+        service_window.grid_rowconfigure(1, weight=1)
+        service_window.grid_rowconfigure(2, weight=0)
+        service_window.grid_rowconfigure(3, weight=0)
+        service_window.grid_columnconfigure(0, weight=1)
+
+        header = ctk.CTkFrame(service_window, fg_color="#111827", corner_radius=10)
+        header.grid(row=0, column=0, sticky="ew", padx=10, pady=(10, 5))
+
+        ctk.CTkLabel(
+            header,
+            text="🔧 Windows 10 Services - Select Services to Disable",
+            font=ctk.CTkFont(family="Segoe UI", size=18, weight="bold"),
+            text_color="#00aaff"
+        ).pack(side="left", padx=15, pady=10)
+
+        btn_frame = ctk.CTkFrame(header, fg_color="transparent")
+        btn_frame.pack(side="right", padx=10)
+
+        service_vars  = []
+        service_items = []
+
+        def update_selection_count():
+            selected = sum(1 for var in service_vars if var.get())
+            count_label.configure(text=f"Selected: {selected} services")
+
+        def select_all():
+            for var in service_vars:
+                var.set(True)
+            update_selection_count()
+
+        def deselect_all():
+            for var in service_vars:
+                var.set(False)
+            update_selection_count()
+
+        ctk.CTkButton(
+            btn_frame, text="Select All", width=90, height=30,
+            fg_color="#00aaff", hover_color="#0077cc",
+            command=select_all
+        ).pack(side="left", padx=3)
+
+        ctk.CTkButton(
+            btn_frame, text="Deselect All", width=90, height=30,
+            fg_color="#445566", hover_color="#334455",
+            command=deselect_all
+        ).pack(side="left", padx=3)
+
+        count_label = ctk.CTkLabel(
+            header, text="Selected: 0 services",
+            font=ctk.CTkFont(size=12), text_color="#88aaff"
+        )
+        count_label.pack(side="right", padx=15)
+
+        warning_frame = ctk.CTkFrame(service_window, fg_color="#331100", corner_radius=8)
+        warning_frame.grid(row=2, column=0, sticky="ew", padx=10, pady=(5, 5))
+
+        ctk.CTkLabel(
+            warning_frame,
+            text="⚠️ Warning: Disabling Windows Update services may prevent security updates. Only disable if you manage updates manually!",
+            font=ctk.CTkFont(family="Segoe UI", size=11),
+            text_color="#ffaa44",
+            wraplength=850
+        ).pack(padx=10, pady=6)
+
+        scroll = ctk.CTkScrollableFrame(
+            service_window, fg_color="transparent",
+            scrollbar_button_color="#1a2540"
+        )
+        scroll.grid(row=1, column=0, sticky="nsew", padx=10, pady=(5, 10))
+
+        static_services = [
+            ("Fax",        "Fax Service",                           "Fax machine support. Safe to disable on all modern PCs."),
+            ("DoSvc",      "Delivery Optimization",                  "Downloads updates from other PCs on your network. DISABLE if you manage updates manually. ⚠️ Needed by WARP."),
+            ("wuauserv",   "Windows Update Service",                 "Core Windows Update. DISABLE only if you manage updates manually."),
+            ("UsoSvc",     "Update Orchestrator Service",            "Schedules and manages Windows Update sessions. DISABLE with wuauserv."),
+            ("bits",       "Background Intelligent Transfer Service","Downloads updates in background. ⚠️ Also used by WARP and some apps."),
+            ("waasmedic",  "Windows Update Medic Service",           "Repairs Windows Update if it gets broken. DISABLE to prevent forced update re-enabling."),
         ]
 
-        base = r"SYSTEM\CurrentControlSet\Services"
-        success, failed = [], []
+        static_services = [
+            (svc, disp, desc)
+            for svc, disp, desc in static_services
+            if self._service_exists(svc)
+        ]
 
-        warp_installed = os.path.exists(r"C:\Program Files\Cloudflare\Cloudflare WARP\warp-svc.exe")
-        if warp_installed:
-            confirm = messagebox.askyesno(
-                "⚠️ Cloudflare WARP Detected",
-                "Will Stop Working When Disable Service.\n\n"
-                "Do you want to continue?"
+        for service_name, display_name, description in static_services:
+            frame = ctk.CTkFrame(scroll, fg_color="#111827", corner_radius=8)
+            frame.pack(fill="x", padx=5, pady=3)
+
+            var = tk.BooleanVar()
+            service_vars.append(var)
+            service_items.append((service_name, display_name))
+
+            var.trace('w', lambda *args: update_selection_count())
+
+            cb = ctk.CTkCheckBox(
+                frame,
+                text=display_name,
+                variable=var,
+                font=ctk.CTkFont(family="Segoe UI", size=12, weight="bold"),
+                text_color="#00aaff",
+                fg_color="#00aaff",
+                hover_color="#0077cc",
+                checkmark_color="white"
             )
-            if not confirm:
-                return
+            cb.pack(side="left", padx=(10, 5), pady=8)
 
-        for service, desc in services:
-            try:
-                key = winreg.CreateKeyEx(
-                    winreg.HKEY_LOCAL_MACHINE,
-                    f"{base}\\{service}",
-                    0, winreg.KEY_SET_VALUE
-                )
-                winreg.SetValueEx(key, "Start", 0, winreg.REG_DWORD, 4)
-                winreg.CloseKey(key)
-                success.append(desc)
-                print(f"[OK] Disabled: {desc}")
-            except Exception as e:
-                failed.append(desc)
-                print(f"[ERROR] {desc}: {e}")
+            desc_label = ctk.CTkLabel(
+                frame,
+                text=description,
+                font=ctk.CTkFont(family="Segoe UI", size=10),
+                text_color="#8899aa",
+                wraplength=650,
+                justify="left"
+            )
+            desc_label.pack(side="left", padx=(5, 10), pady=8, fill="x", expand=True)
 
-        dynamic_services = [
-            "MessagingService",
-            "OneSyncSvc",
-            "BluetoothUserService",
-            "PrintWorkflowUserSvc",
-            "cbdhsvc",
+        dynamic_service_patterns = [
+
         ]
 
         try:
@@ -1418,30 +1483,114 @@ class WindowsOptimizer:
                 r"SYSTEM\CurrentControlSet\Services"
             )
             i = 0
+            discovered_services = set()
+
             while True:
                 try:
                     sub = winreg.EnumKey(base_key, i)
-                    for ds in dynamic_services:
-                        if sub.startswith(ds):
-                            try:
-                                key = winreg.CreateKeyEx(
-                                    winreg.HKEY_LOCAL_MACHINE,
-                                    rf"SYSTEM\CurrentControlSet\Services\{sub}",
-                                    0, winreg.KEY_SET_VALUE
-                                )
-                                winreg.SetValueEx(key, "Start", 0, winreg.REG_DWORD, 4)
-                                winreg.CloseKey(key)
-                                success.append(sub)
-                            except Exception as e:
-                                failed.append(sub)
+                    for pattern, display_base, description_base in dynamic_service_patterns:
+                        if sub.startswith(pattern) and sub not in discovered_services:
+                            discovered_services.add(sub)
+
+                            display_name = f"{display_base} [{sub}]"
+
+                            frame = ctk.CTkFrame(scroll, fg_color="#112233", corner_radius=8)
+                            frame.pack(fill="x", padx=5, pady=3)
+
+                            var = tk.BooleanVar()
+                            service_vars.append(var)
+                            service_items.append((sub, display_name))
+
+                            var.trace('w', lambda *args: update_selection_count())
+
+                            cb = ctk.CTkCheckBox(
+                                frame,
+                                text=f"🔍 {display_name}",
+                                variable=var,
+                                font=ctk.CTkFont(family="Segoe UI", size=12, weight="bold"),
+                                text_color="#88aaff",
+                                fg_color="#00aaff",
+                                hover_color="#0077cc",
+                                checkmark_color="white"
+                            )
+                            cb.pack(side="left", padx=(10, 5), pady=8)
+
+                            desc_label = ctk.CTkLabel(
+                                frame,
+                                text=f"{description_base} (DISCOVERED SERVICE - specific to your system)",
+                                font=ctk.CTkFont(family="Segoe UI", size=10),
+                                text_color="#88aacc",
+                                wraplength=630,
+                                justify="left"
+                            )
+                            desc_label.pack(side="left", padx=(5, 10), pady=8, fill="x", expand=True)
+
                     i += 1
                 except OSError:
                     break
             winreg.CloseKey(base_key)
-        except Exception as e:
-            print(f"[ERROR] Dynamic services: {e}")
 
-        self.show_result_window("Disable Services", success, failed)
+            if discovered_services:
+                sep_frame = ctk.CTkFrame(scroll, fg_color="#1a2540", height=2)
+                sep_frame.pack(fill="x", padx=10, pady=10)
+
+                ctk.CTkLabel(
+                    scroll,
+                    text="📌 Discovered Dynamic Services (unique to your system)",
+                    font=ctk.CTkFont(family="Segoe UI", size=12, weight="bold"),
+                    text_color="#ffaa44"
+                ).pack(pady=(5, 5))
+
+        except Exception as e:
+            print(f"[ERROR] Dynamic services discovery: {e}")
+
+        bottom_frame = ctk.CTkFrame(service_window, fg_color="transparent")
+        bottom_frame.grid(row=3, column=0, sticky="ew", padx=10, pady=(0, 10))
+
+        def apply_selected_services():
+            selected_services = []
+            selected_names    = []
+            for i, var in enumerate(service_vars):
+                if var.get():
+                    service_name, display_name = service_items[i]
+                    selected_services.append(service_name)
+                    selected_names.append(display_name)
+
+            if not selected_services:
+                messagebox.showinfo("No Selection", "Please select at least one service to disable.")
+                return
+
+            confirm_msg  = f"Are you sure you want to disable {len(selected_services)} service(s)?\n\n"
+            confirm_msg += "Selected services:\n" + "\n".join(f"• {name}" for name in selected_names[:15])
+            if len(selected_services) > 15:
+                confirm_msg += f"\n... and {len(selected_services) - 15} more"
+
+            if not messagebox.askyesno("Confirm", confirm_msg):
+                return
+
+            service_window.destroy()
+            self.apply_selected_services(selected_services) 
+
+        ctk.CTkButton(
+            bottom_frame,
+            text="✅ Apply Selected Services",
+            font=ctk.CTkFont(size=13, weight="bold"),
+            fg_color="#00aaff",
+            hover_color="#0077cc",
+            height=40,
+            command=apply_selected_services
+        ).pack(fill="x", pady=5)
+
+        ctk.CTkButton(
+            bottom_frame,
+            text="Cancel",
+            font=ctk.CTkFont(size=12),
+            fg_color="#445566",
+            hover_color="#334455",
+            height=35,
+            command=service_window.destroy
+        ).pack(fill="x", pady=3)
+
 
 
     def Restore_win10(self):
@@ -1478,7 +1627,6 @@ class WindowsOptimizer:
 
     def disable_Xbox_Services(self):
         services = [
-            # ---- Xbox & Gaming (if not a gamer) ----
             ("XblAuthManager",      "Xbox Live Auth Manager"),
             ("XblGameSave",         "Xbox Live Game Save"),
             ("XboxGipSvc",          "Xbox Accessory Management"),
@@ -1495,7 +1643,7 @@ class WindowsOptimizer:
                     f"{base}\\{service}",
                     0, winreg.KEY_SET_VALUE
                 )
-                winreg.SetValueEx(key, "Start", 0, winreg.REG_DWORD, 4)  # 4 = Disabled
+                winreg.SetValueEx(key, "Start", 0, winreg.REG_DWORD, 4)  
                 winreg.CloseKey(key)
                 success.append(desc)
                 print(f"[OK] Disabled: {desc}")
@@ -1508,9 +1656,7 @@ class WindowsOptimizer:
 
 
     def disable_Bitlocker_Services(self):
-        """تعطيل الخدمات غير الضرورية عبر الريجستري"""
         services = [
-            # ---- Xbox & Gaming (if not a gamer) ----
             ("BDESVC",      "BitLocker Drive Encryption Service"),
             ]
         base = r"SYSTEM\CurrentControlSet\Services"
@@ -1523,7 +1669,7 @@ class WindowsOptimizer:
                     f"{base}\\{service}",
                     0, winreg.KEY_SET_VALUE
                 )
-                winreg.SetValueEx(key, "Start", 0, winreg.REG_DWORD, 4)  # 4 = Disabled
+                winreg.SetValueEx(key, "Start", 0, winreg.REG_DWORD, 4)  
                 winreg.CloseKey(key)
                 success.append(desc)
                 print(f"[OK] Disabled: {desc}")
@@ -1558,10 +1704,8 @@ class WindowsOptimizer:
         self.show_result_window("Enable Wifi", success, failed)
 
     def restore_services(self):
-        """Show only services that are currently disabled on this PC, let user pick which to re-enable"""
 
-        # ── Full known-services list with their default Start values ────
-        # (service_key, display_name, description, default_start_value)
+
         # 2=Automatic  3=Manual  4=Disabled
         ALL_KNOWN_SERVICES = [
             ("BTAGService",          "Bluetooth Audio Gateway",                    "Bluetooth audio devices. Restore if you use BT headphones/speakers.",       3),
@@ -1662,7 +1806,6 @@ class WindowsOptimizer:
             ("GamingServices",       "Gaming Services",                            "Microsoft Gaming Services.",                                                 3),
         ]
 
-        # ── Scan: keep only services that exist AND are currently disabled ──
         base = r"SYSTEM\CurrentControlSet\Services"
         disabled_services = []
 
@@ -1675,12 +1818,11 @@ class WindowsOptimizer:
                 )
                 current_start, _ = winreg.QueryValueEx(key, "Start")
                 winreg.CloseKey(key)
-                if current_start == 4:  # 4 = Disabled
+                if current_start == 4:  
                     disabled_services.append((svc_key, display_name, description, default_val))
             except Exception:
-                pass  # Service doesn't exist on this machine — skip
+                pass 
 
-        # ── Build the window ────────────────────────────────────────────
         service_window = ctk.CTkToplevel(self.root)
         service_window.title("Select Services to Re-Enable")
         service_window.geometry("950x750")
@@ -1694,7 +1836,6 @@ class WindowsOptimizer:
         service_window.grid_rowconfigure(3, weight=0)
         service_window.grid_columnconfigure(0, weight=1)
 
-        # Header
         header = ctk.CTkFrame(service_window, fg_color="#111827", corner_radius=10)
         header.grid(row=0, column=0, sticky="ew", padx=10, pady=(10, 5))
 
@@ -1743,7 +1884,6 @@ class WindowsOptimizer:
         )
         count_label.pack(side="right", padx=15)
 
-        # Info bar — how many disabled services found
         info_frame = ctk.CTkFrame(service_window, fg_color="#0a2010", corner_radius=8)
         info_frame.grid(row=2, column=0, sticky="ew", padx=10, pady=(5, 5))
 
@@ -1762,7 +1902,6 @@ class WindowsOptimizer:
             wraplength=850
         ).pack(padx=10, pady=6)
 
-        # Scrollable list
         scroll = ctk.CTkScrollableFrame(
             service_window, fg_color="transparent",
             scrollbar_button_color="#1a2540"
@@ -1799,7 +1938,6 @@ class WindowsOptimizer:
                 )
                 cb.pack(side="left", padx=(10, 5), pady=8)
 
-                # Show what value it will be restored to
                 start_label_map = {2: "Automatic", 3: "Manual", 4: "Disabled"}
                 restore_to = start_label_map.get(default_val, str(default_val))
 
@@ -1813,7 +1951,6 @@ class WindowsOptimizer:
                 )
                 desc_label.pack(side="left", padx=(5, 10), pady=8, fill="x", expand=True)
 
-        # Bottom buttons
         bottom_frame = ctk.CTkFrame(service_window, fg_color="transparent")
         bottom_frame.grid(row=3, column=0, sticky="ew", padx=10, pady=(0, 10))
 
@@ -1880,8 +2017,6 @@ class WindowsOptimizer:
 
 
     def restore_Xbox_services(self):
-        """استعادة الخدمات لقيمها الافتراضية"""
-        # 2=Automatic, 3=Manual, 4=Disabled
         services = [
             ("XblAuthManager",      3, "Xbox Live Auth Manager"),
             ("XblGameSave",         3, "Xbox Live Game Save"),
@@ -1914,12 +2049,12 @@ class WindowsOptimizer:
     def permanent_optimizations(self):
         try:
             key = winreg.CreateKey(winreg.HKEY_CURRENT_USER, r"Software\Microsoft\Windows\CurrentVersion\Explorer\VisualEffects")
-            winreg.SetValueEx(key, "VisualFXSetting", 0, winreg.REG_DWORD, 2)  # 2 = Adjust for best performance
+            winreg.SetValueEx(key, "VisualFXSetting", 0, winreg.REG_DWORD, 2)  
             winreg.CloseKey(key)
 
             key = winreg.CreateKey(winreg.HKEY_CURRENT_USER, r"Control Panel\Mouse")
             winreg.SetValueEx(key, "MouseTrails",   0, winreg.REG_SZ, "0")
-            winreg.SetValueEx(key, "MouseSpeed",    0, winreg.REG_SZ, "0")  # إيقاف Pointer Precision
+            winreg.SetValueEx(key, "MouseSpeed",    0, winreg.REG_SZ, "0")  
             winreg.SetValueEx(key, "MouseThreshold1", 0, winreg.REG_SZ, "0")
             winreg.SetValueEx(key, "MouseThreshold2", 0, winreg.REG_SZ, "0")
             winreg.CloseKey(key)
@@ -1932,7 +2067,7 @@ class WindowsOptimizer:
     def AnimeDis(self):
         try:
             key = winreg.CreateKey(winreg.HKEY_CURRENT_USER, r"Software\Microsoft\Windows\CurrentVersion\Explorer\VisualEffects")
-            winreg.SetValueEx(key, "VisualFXSetting", 0, winreg.REG_DWORD, 2)  # 2 = Adjust for best performance
+            winreg.SetValueEx(key, "VisualFXSetting", 0, winreg.REG_DWORD, 2) 
             winreg.CloseKey(key)
 
             print("Disable Animation applied.")
@@ -2023,25 +2158,25 @@ class WindowsOptimizer:
         try:
             base_path = r"SOFTWARE\Microsoft\Windows NT\CurrentVersion\Multimedia\SystemProfile"
             key = winreg.CreateKeyEx(winreg.HKEY_LOCAL_MACHINE, base_path, 0, winreg.KEY_SET_VALUE)
-            winreg.SetValueEx(key, "NetworkThrottlingIndex", 0, winreg.REG_DWORD, 0x0000000a)   # 10 (already default, but keep)
-            winreg.SetValueEx(key, "SystemResponsiveness", 0, winreg.REG_DWORD, 0x00000014)     # 20 = Windows DEFAULT (changed from 10)
+            winreg.SetValueEx(key, "NetworkThrottlingIndex", 0, winreg.REG_DWORD, 0x0000000a)  
+            winreg.SetValueEx(key, "SystemResponsiveness", 0, winreg.REG_DWORD, 0x00000014)    
             winreg.CloseKey(key)
 
             mem_path = r"SYSTEM\CurrentControlSet\Control\Session Manager\Memory Management"
             key = winreg.CreateKeyEx(winreg.HKEY_LOCAL_MACHINE, mem_path, 0, winreg.KEY_SET_VALUE)
-            winreg.SetValueEx(key, "LargeSystemCache", 0, winreg.REG_DWORD, 0x00000000)         # 0 = default
-            winreg.SetValueEx(key, "DisablePagingExecutive", 0, winreg.REG_DWORD, 0x00000000)   # 0 = Windows DEFAULT (changed from 1)
+            winreg.SetValueEx(key, "LargeSystemCache", 0, winreg.REG_DWORD, 0x00000000)        
+            winreg.SetValueEx(key, "DisablePagingExecutive", 0, winreg.REG_DWORD, 0x00000000) 
             winreg.CloseKey(key)
 
             game_path = r"SOFTWARE\Microsoft\GameBar"
             key = winreg.CreateKeyEx(winreg.HKEY_CURRENT_USER, game_path, 0, winreg.KEY_SET_VALUE)
-            winreg.SetValueEx(key, "AllowAutoGameMode", 0, winreg.REG_DWORD, 0x00000001)        # 1 = default
-            winreg.SetValueEx(key, "AutoGameModeEnabled", 0, winreg.REG_DWORD, 0x00000001)       # 1 = default
+            winreg.SetValueEx(key, "AllowAutoGameMode", 0, winreg.REG_DWORD, 0x00000001)      
+            winreg.SetValueEx(key, "AutoGameModeEnabled", 0, winreg.REG_DWORD, 0x00000001)    
             winreg.CloseKey(key)
 
             io_path = r"SYSTEM\CurrentControlSet\Control\Session Manager\I/O System"
             key = winreg.CreateKeyEx(winreg.HKEY_LOCAL_MACHINE, io_path, 0, winreg.KEY_SET_VALUE)
-            winreg.SetValueEx(key, "CountOperations", 0, winreg.REG_DWORD, 0x00000001)          # 1 = Windows DEFAULT (changed from 0)
+            winreg.SetValueEx(key, "CountOperations", 0, winreg.REG_DWORD, 0x00000001)       
             winreg.CloseKey(key)
 
             messagebox.showinfo("✅ Restored", "All gaming tweaks have been restored to Windows defaults!\n\n• SystemResponsiveness: 20 (default)\n• DisablePagingExecutive: 0 (default)\n• CountOperations: 1 (default)")
@@ -2084,7 +2219,6 @@ class WindowsOptimizer:
             winreg.DeleteValue(key, "Debugger")
             winreg.CloseKey(key)
         except FileNotFoundError:
-            # في حال لم تكن القيمة موجودة أصلاً (Edge غير محظور)
             pass
         except Exception as e:
             print(f"Error restoring Edge: {e}")
@@ -2154,7 +2288,7 @@ class WindowsOptimizer:
             success, failed = [], []
 
             tweaks = [
-    # Restore Core Parking
+                # Restore Core Parking
                 (["powercfg", "-setacvalueindex", "SCHEME_CURRENT",
                 "54533251-82be-4824-96c1-47b60b740d00",
                 "0cc5b647-c1df-4637-891a-dec35c318583", "100"],
